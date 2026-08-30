@@ -31,3 +31,17 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### OS clutter ###
+.DS_Store
+Thumbs.db
+
+### Logs ###
+*.log
+
+### Secrets / local overrides ###
+.env
+application-local.properties
+application-secrets.properties
+*.pem
+*.key
