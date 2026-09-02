@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIP-IN Enrollment Support System</title>
+    <style>
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f6f8;
+            color: #252525
+        }
+
+        button,
+        input,
+        select {
+            font: inherit
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 220px;
+            background: #10171a;
+            color: white;
+            padding: 20px 14px;
+            z-index: 2
+        }
+
+        .logo {
+            height: 62px;
+            border-bottom: 1px solid #394145;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .logo-mark {
+            width: 38px;
+            height: 38px;
+            border: 2px solid #f5c400;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f5c400;
+            font-weight: bold
+        }
+
+        .logo b {
+            color: #f5c400;
+            font-size: 18px
+        }
+
+        .logo small {
+            display: block;
+            color: #ddd;
+            font-size: 9px;
+            margin-top: 2px
+        }
+
+        .nav button {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: #ddd;
+            text-align: left;
+            padding: 11px 12px;
+            border-radius: 5px;
+            margin: 2px 0;
+            cursor: pointer
+        }
+
+        .nav button:hover,
+        .nav button.active {
+            background: #f5c400;
+            color: #151515
+        }
+
+        .bottom {
+            position: absolute;
+            bottom: 20px;
+            left: 14px;
+            right: 14px;
+            color: #c7c7c7;
+            font-size: 9px;
+            line-height: 1.4
+        }
+
+        .main {
+            margin-left: 220px;
+            padding: 20px 24px
+        }
+
+        .top {
+            height: 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px
+        }
+
+        .title h2 {
+            margin: 0;
+            font-size: 22px
+        }
+
+        .title p {
+            margin: 4px 0 0;
+            color: #777;
+            font-size: 12px
+        }
+
+        .user {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-size: 12px
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .page {
+            display: none
+        }
+
+        .page.active {
+            display: block
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 14px
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e4e4e4;
+            border-radius: 6px;
+            padding: 13px;
+            min-height: 80px
+        }
+
+        .card .num {
+            font-size: 21px;
+            font-weight: bold;
+            margin-top: 6px
+        }
+
+        .card .label {
+            font-size: 10px;
+            color: #777
+        }
+
+        .icon {
+            float: right;
+            font-size: 20px;
+            color: #e2b600
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 14px
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #e2e2e2;
+            border-radius: 6px;
+            padding: 14px;
+            margin-bottom: 14px
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px
+        }
+
+        .panel h3 {
+            font-size: 14px;
+            margin: 0
+        }
+
+        .link {
+            font-size: 10px;
+            color: #c39900;
+            cursor: pointer
+        }
+
+        .chart {
+            height: 180px;
+            display: flex;
+            align-items: flex-end;
+            gap: 9px;
+            padding: 10px 5px 0;
+            border-bottom: 1px solid #ddd
+        }
+
+        .bar {
+            flex: 1;
+            background: #f5c400;
+            border-radius: 3px 3px 0 0;
+            min-height: 25px
+        }
+
+        .bar.gray {
+            background: #d6d6d6
+        }
+
+        .days {
+            display: flex;
+            justify-content: space-around;
+            font-size: 9px;
+            color: #777;
+            margin-top: 5px
+        }
+
+        .announce {
+            border-bottom: 1px solid #eee;
+            padding: 9px 0;
+            font-size: 11px
+        }
+
+        .announce:last-child {
+            border: 0
+        }
+
+        .announce b {
+            display: block;
+            margin-bottom: 3px
+        }
+
+        .muted {
+            color: #777;
+            font-size: 10px
+        }
+
+        .quick button {
+            display: block;
+            width: 100%;
+            padding: 9px;
+            text-align: left;
+            background: white;
+            border: 0;
+            border-bottom: 1px solid #eee;
+            font-size: 11px;
+            cursor: pointer
+        }
+
+        .quick button:hover {
+            background: #faf3c8
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px
+        }
+
+        th {
+            background: #f5c400;
+            text-align: left;
+            padding: 8px
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #eee
+        }
+
+        .status {
+            padding: 4px 7px;
+            border-radius: 10px;
+            font-size: 9px;
+            background: #e7f5e9
+        }
+
+        .status.warn {
+            background: #fff1bd
+        }
+
+        .status.red {
+            background: #ffdede
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px
+        }
+
+        .toolbar input,
+        .toolbar select {
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 4px;
+            background: white;
+            font-size: 10px
+        }
+
+        .toolbar input {
+            flex: 1
+        }
+
+        .btn {
+            border: 0;
+            background: #f5c400;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px
+        }
+
+        .btn:hover {
+            background: #e3b500
+        }
+
+        .schedule {
+            display: grid;
+            grid-template-columns: 55px repeat(5, 1fr);
+            border: 1px solid #ddd
+        }
+
+        .schedule div {
+            min-height: 48px;
+            border-right: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            padding: 5px;
+            font-size: 9px
+        }
+
+        .head {
+            background: #fafafa;
+            font-weight: bold
+        }
+
+        .subject {
+            background: #fff1a8;
+            border-radius: 4px;
+            margin: 2px
+        }
+
+        .notice {
+            background: #fff8d8;
+            border-left: 4px solid #f5c400;
+            padding: 10px;
+            font-size: 11px;
+            margin-bottom: 12px
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #0007;
+            align-items: center;
+            justify-content: center;
+            z-index: 5
+        }
+
+        .modal.show {
+            display: flex
+        }
+
+        .modal-box {
+            background: white;
+            width: 430px;
+            padding: 20px;
+            border-radius: 7px
+        }
+
+        .modal-box input,
+        .modal-box select {
+            width: 100%;
+            padding: 9px;
+            margin: 6px 0 12px;
+            border: 1px solid #ddd
+        }
+
+        .close {
+            float: right;
+            border: 0;
+            background: none;
+            font-size: 20px;
+            cursor: pointer
+        }
+
+        @media(max-width:900px) {
+            .sidebar {
+                width: 180px
+            }
+
+            .main {
+                margin-left: 180px
+            }
+
+            .cards {
+                grid-template-columns: repeat(2, 1fr)
+            }
+
+            .grid {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <div><b>T.I.P-IN</b><small>Integrated Enrollment<br>Support System</small></div>
+        </div>
+        <div class="nav">
+            <button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
+            <button onclick="showPage('courses',this)">Course Monitoring</button>
+            <button onclick="showPage('sections',this)">Section & Schedule</button>
+            <button onclick="showPage('petitions',this)">Petition Management</button>
+            <button onclick="showPage('announcements',this)">Announcements</button>
+            <button onclick="showPage('settings',this)">Settings</button>
+            <button onclick="alert('Logged out (demo only).')">Logout</button>
+        </div>
+        <div class="bottom">TECHNOLOGICAL INSTITUTE<br>OF THE PHILIPPINES<br>QUEZON CITY</div>
+    </aside>
+
+    <main class="main">
+        <div class="top">
+            <div class="title">
+                <h2 id="pageTitle">Good morning, Juan Dela Cruz!</h2>
+                <p id="pageSub">Enrollment Support System • 1st Semester 2025–2026</p>
+            </div>
+            <div class="user"><span>Notifications</span>
+                <div class="avatar">JD</div><span>Student</span>
+            </div>
+        </div>
+
+        <section id="dashboard" class="page active">
+            <div class="cards">
+                <div class="card">
+                    <div class="label">TOTAL STUDENTS</div>
+                    <div class="num">2,845</div>
+                </div>
+                <div class="card">
+                    <div class="label">TOTAL COURSES</div>
+                    <div class="num">156</div>
+                </div>
+                <div class="card">
+                    <div class="label">SECTIONS</div>
+                    <div class="num">312</div>
+                </div>
+                <div class="card">
+                    <div class="label">PENDING PETITIONS</div>
+                    <div class="num">12</div>
+                </div>
+                <div class="card">
+                    <div class="label">OVER CAPACITY</div>
+                    <div class="num">8</div>
+                </div>
+            </div>
+            <div class="notice"><b>Enrollment status:</b> 8 courses currently have high demand. Review course capacity
+                and section requests before the next enrollment period.</div>
+            <div class="grid">
+                <div>
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h3>Enrollment Overview</h3><span class="link">View Report</span>
+                        </div>
+                        <div class="chart">
+                            <div class="bar" style="height:42%"></div>
+                            <div class="bar" style="height:51%"></div>
+                            <div class="bar" style="height:58%"></div>
+                            <div class="bar" style="height:66%"></div>
+                            <div class="bar" style="height:75%"></div>
+                            <div class="bar" style="height:84%"></div>
+                            <div class="bar" style="height:94%"></div>
+                        </div>
+                        <div class="days"><span>May 1</span><span>May 8</span><span>May 15</span><span>May
+                                22</span><span>May 29</span><span>Jun 5</span><span>Jun 12</span></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h3>Recent Section Activity</h3><span class="link">View All</span>
+                        </div>
+                        <table>
+                            <tr>
+                                <th>Course</th>
+                                <th>Section</th>
+                                <th>Enrolled</th>
+                                <th>Status</th>
+                            </tr>
+                            <tr>
+                                <td>ITE 004 - Web Systems & Technologies</td>
+                                <td>IT21S6</td>
+                                <td>38 / 40</td>
+                                <td><span class="status warn">Near Full</span></td>
+                            </tr>
+                            <tr>
+                                <td>CS 201 - Data Structures and Algorithms</td>
+                                <td>IT21S6</td>
+                                <td>40 / 40</td>
+                                <td><span class="status red">Full</span></td>
+                            </tr>
+                            <tr>
+                                <td>SAD 003 - System Analysis and Design</td>
+                                <td>IT21S6</td>
+                                <td>29 / 40</td>
+                                <td><span class="status">Available</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h3>Announcements</h3><span class="link" onclick="showPage('announcements')">View All</span>
+                        </div>
+                        <div class="announce"><b>Enrollment for Term 1</b><span class="muted">Regular enrollment will
+                                start on May 20, 2025.</span></div>
+                        <div class="announce"><b>Course Pre-enlistment Guide</b><span class="muted">Please check the
+                                enrollment guidelines.</span></div>
+                        <div class="announce"><b>Section Capacity Review</b><span class="muted">Review sections with
+                                high demand.</span></div>
+                    </div>
+                    <div class="panel quick">
+                        <h3 style="margin-bottom:8px">Quick Actions</h3>
+                        <button onclick="openModal()">＋ Create New Section</button><button
+                            onclick="showPage('students')">♙ View Students</button><button
+                            onclick="showPage('petitions')">▤ Review Petitions</button><button
+                            onclick="showPage('courses')">▥ Check Course Demand</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        
+
+        <section id="courses" class="page">
+            <div class="cards">
+                <div class="card">
+                    <div class="label">COURSES OFFERED</div>
+                    <div class="num">156</div>
+                </div>
+                <div class="card">
+                    <div class="label">HIGH DEMAND</div>
+                    <div class="num">18</div>
+                </div>
+                <div class="card">
+                    <div class="label">LOW ENROLLMENT</div>
+                    <div class="num">12</div>
+                </div>
+                <div class="card">
+                    <div class="label">AVG. FILL RATE</div>
+                    <div class="num">78%</div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-head">
+                    <h3>Course Demand Monitoring</h3><button class="btn"
+                        onclick="alert('Report generated (demo).')">Generate Report</button>
+                </div>
+                <table>
+                    <tr>
+                        <th>Course Code</th>
+                        <th>Course Title</th>
+                        <th>Sections</th>
+                        <th>Capacity</th>
+                        <th>Enrolled</th>
+                        <th>Fill Rate</th>
+                        <th>Status</th>
+                    </tr>
+                    <tr>
+                        <td>CS 201</td>
+                        <td>Data Structures and Algorithms</td>
+                        <td>9</td>
+                        <td>360</td>
+                        <td>342</td>
+                        <td>95%</td>
+                        <td><span class="status red">High Demand</span></td>
+                    </tr>
+                    <tr>
+                        <td>ITE 004</td>
+                        <td>Web Systems & Technologies</td>
+                        <td>8</td>
+                        <td>320</td>
+                        <td>298</td>
+                        <td>93%</td>
+                        <td><span class="status red">High Demand</span></td>
+                    </tr>
+                    <tr>
+                        <td>SAD 003</td>
+                        <td>System Analysis and Design</td>
+                        <td>10</td>
+                        <td>400</td>
+                        <td>289</td>
+                        <td>72%</td>
+                        <td><span class="status">Good</span></td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <section id="sections" class="page">
+            <div class="cards">
+                <div class="card">
+                    <div class="label">TOTAL SECTIONS</div>
+                    <div class="num">312</div>
+                </div>
+                <div class="card">
+                    <div class="label">SCHEDULED</div>
+                    <div class="num">286</div>
+                </div>
+                <div class="card">
+                    <div class="label">UNASSIGNED</div>
+                    <div class="num">26</div>
+                </div>
+                <div class="card">
+                    <div class="label">CONFLICTS</div>
+                    <div class="num">4</div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-head">
+                    <h3>Section & Schedule List</h3><button class="btn" onclick="openModal()">+ Add Section</button>
+                </div>
+                <div class="toolbar"><input placeholder="Search course or section..."><select>
+                        <option>All Departments</option>
+                        <option>IT Department</option>
+                    </select><select>
+                        <option>All Status</option>
+                        <option>Active</option>
+                        <option>Full</option>
+                    </select></div>
+                <table>
+                    <tr>
+                        <th>Course</th>
+                        <th>Section</th>
+                        <th>Schedule</th>
+                        <th>Room</th>
+                        <th>Capacity</th>
+                        <th>Enrolled</th>
+                        <th>Status</th>
+                    </tr>
+                    <tr>
+                        <td>ITE 004</td>
+                        <td>IT21S6</td>
+                        <td>Tue 7:00–10:00 AM</td>
+                        <td>Q9209</td>
+                        <td>40</td>
+                        <td>38</td>
+                        <td><span class="status warn">Near Full</span></td>
+                    </tr>
+                    <tr>
+                        <td>CS 201</td>
+                        <td>IT21S6</td>
+                        <td>Wed 7:00–10:00 AM</td>
+                        <td>Q9210</td>
+                        <td>40</td>
+                        <td>40</td>
+                        <td><span class="status red">Full</span></td>
+                    </tr>
+                    <tr>
+                        <td>SAD 003</td>
+                        <td>IT21S6</td>
+                        <td>Mon 10:00–1:00 PM</td>
+                        <td>Q8203</td>
+                        <td>40</td>
+                        <td>29</td>
+                        <td><span class="status">Active</span></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="panel">
+                <h3 style="margin-bottom:12px">Weekly Schedule Overview</h3>
+                <div class="schedule">
+                    <div class="head">Time</div>
+                    <div class="head">Mon</div>
+                    <div class="head">Tue</div>
+                    <div class="head">Wed</div>
+                    <div class="head">Thu</div>
+                    <div class="head">Fri</div>
+                    <div>7 AM</div>
+                    <div></div>
+                    <div>
+                        <div class="subject">ITE 004<br>IT21S6</div>
+                    </div>
+                    <div>
+                        <div class="subject">CS 201<br>IT21S6</div>
+                    </div>
+                    <div></div>
+                    <div></div>
+                    <div>10 AM</div>
+                    <div>
+                        <div class="subject">SAD 003<br>IT21S6</div>
+                    </div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div>1 PM</div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="petitions" class="page">
+            <div class="cards">
+                <div class="card">
+                    <div class="label">TOTAL PETITIONS</div>
+                    <div class="num">28</div>
+                </div>
+                <div class="card">
+                    <div class="label">PENDING</div>
+                    <div class="num">12</div>
+                </div>
+                <div class="card">
+                    <div class="label">APPROVED</div>
+                    <div class="num">10</div>
+                </div>
+                <div class="card">
+                    <div class="label">DENIED</div>
+                    <div class="num">6</div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="toolbar"><input placeholder="Search petition or student..."><select>
+                        <option>All Types</option>
+                        <option>Appeal for Grade</option>
+                        <option>Request for Prerequisite Override</option>
+                        <option>Section Transfer</option>
+                    </select><button class="btn">Filter</button></div>
+                <table>
+                    <tr>
+                        <th>Petition ID</th>
+                        <th>Student</th>
+                        <th>Type</th>
+                        <th>Subject / Section</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                    <tr>
+                        <td>PET-2025-0028</td>
+                        <td>Juan Dela Cruz</td>
+                        <td>Appeal for Grade</td>
+                        <td>ITE 004 - IT21S6</td>
+                        <td>May 16</td>
+                        <td><span class="status warn">Pending</span></td>
+                        <td><button class="btn" onclick="reviewPetition('PET-2025-0028')">View</button></td>
+                    </tr>
+                    <tr>
+                        <td>PET-2025-0027</td>
+                        <td>Maria Santos</td>
+                        <td>Prerequisite Override</td>
+                        <td>CS 201 - IT21S6</td>
+                        <td>May 15</td>
+                        <td><span class="status warn">Pending</span></td>
+                        <td><button class="btn" onclick="reviewPetition('PET-2025-0027')">View</button></td>
+                    </tr>
+                    <tr>
+                        <td>PET-2025-0026</td>
+                        <td>Kyle Rivera</td>
+                        <td>Section Transfer</td>
+                        <td>SAD 003 - IT21S6</td>
+                        <td>May 14</td>
+                        <td><span class="status">Approved</span></td>
+                        <td><button class="btn" onclick="reviewPetition('PET-2025-0026')">View</button></td>
+                    </tr>
+                    <tr>
+                        <td>PET-2025-0025</td>
+                        <td>Angela Reyes</td>
+                        <td>Petition for Late Enrollment</td>
+                        <td>ITE 004 - IT21S6</td>
+                        <td>May 13</td>
+                        <td><span class="status">Approved</span></td>
+                        <td><button class="btn" onclick="reviewPetition('PET-2025-0025')">View</button></td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <section id="announcements" class="page">
+            <div class="panel">
+                <div class="panel-head">
+                    <h3>Announcements</h3><button class="btn" onclick="alert('New announcement form opened (demo).')">+
+                        New Announcement</button>
+                </div>
+                <div class="announce"><b>Enrollment for Term 1</b><span class="muted">Regular enrollment will start on
+                        May 20, 2025.</span></div>
+                <div class="announce"><b>Course Pre-enlistment Guide</b><span class="muted">Please check the
+                        pre-enlistment guidelines before submitting.</span></div>
+                <div class="announce"><b>Class Suspension</b><span class="muted">Classes are suspended on May 23,
+                        2025.</span></div>
+            </div>
+        </section>
+        <section id="settings" class="page">
+            <div class="panel">
+                <h3>System Settings</h3>
+                <p class="muted">Demo settings for the enrollment support system.</p><label>School Year</label><select
+                    style="display:block;margin:8px 0 15px;padding:8px">
+                    <option>2025–2026</option>
+                    <option>2026–2027</option>
+                </select><button class="btn" onclick="alert('Settings saved (demo).')">Save Changes</button>
+            </div>
+        </section>
+    </main>
+
+    <div class="modal" id="modal">
+        <div class="modal-box"><button class="close" onclick="closeModal()">×</button>
+            <h3>Create New Section</h3><label>Course</label><select>
+                <option>ITE 004 - Web Systems & Technologies</option>
+                <option>SAD 003 - System Analysis and Design</option>
+                <option>CS 201 - Data Structures and Algorithms</option>
+            </select><label>Section</label><input placeholder="e.g. IT21S6"><label>Schedule</label><input
+                placeholder="e.g. Friday 1:00–4:00 PM"><label>Room</label><input placeholder="e.g. Q9209"><button
+                class="btn" onclick="saveSection()">Create Section</button>
+        </div>
+    </div>
+
+    <script>
+        const titles = {
+            dashboard: ["Good morning, Juan Dela Cruz!", "Enrollment Support System • 1st Semester 2025–2026"],
+            students: ["Student Management", "Manage student enrollment records and status."],
+            courses: ["Course Monitoring", "Monitor course demand, enrollment, and capacity utilization."],
+            sections: ["Section & Schedule Management", "Create, manage, and coordinate sections and schedules."],
+            petitions: ["Petition Management", "Review, evaluate, and manage student petitions."],
+            announcements: ["Announcements", "Manage system announcements."],
+            settings: ["Settings", "Configure basic system settings."]
+        };
+        function showPage(id, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            document.getElementById('pageTitle').textContent = titles[id][0];
+            document.getElementById('pageSub').textContent = titles[id][1];
+            window.scrollTo(0, 0);
+        }
+        function openModal() { document.getElementById('modal').classList.add('show') }
+        function closeModal() { document.getElementById('modal').classList.remove('show') }
+        function saveSection() { alert('Section created successfully! (demo only)'); closeModal() }
+        function reviewPetition(id) { alert('Opening details for ' + id + ' (demo only).') }
+        function filterTable(id, text) {
+            const rows = document.querySelectorAll('#' + id + ' tr');
+            text = text.toLowerCase();
+            for (let i = 1; i < rows.length; i++) rows[i].style.display = rows[i].innerText.toLowerCase().includes(text) ? '' : 'none';
+        }
+        window.onclick = function (e) { if (e.target === document.getElementById('modal')) closeModal() }
+    </script>
+</body>
+
+</html>
