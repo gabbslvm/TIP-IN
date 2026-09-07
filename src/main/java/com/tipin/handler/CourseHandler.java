@@ -4,9 +4,12 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.tipin.service.CourseService;
 import com.tipin.util.JsonUtil;
+import com.tipin.model.Course;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 
 public class CourseHandler implements HttpHandler 
 {
@@ -16,25 +19,31 @@ public class CourseHandler implements HttpHandler
         String path = exchange.getRequestURI().getPath();
         String method = exchange.getRequestMethod();
 
-        if (method.equals("GET") && path.equals("/courses")) 
+        if (method.equals("OPTIONS")) {
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
+            exchange.sendResponseHeaders(204, -1);
+            return;
+        }
+        if (method.equals("GET") && path.equals("/api/courses")) 
         {
             try {
-                // JSONObject result = CourseService.getAllCourses();
-                // sendResponse(exchange, 200, JsonUtil.toJson(result));
+                List<Course> courses = CourseService.getAllCourses();
+
+                JSONArray array = new JSONArray();
+                for (Course c : courses) {
+                    JSONObject obj = new JSONObject();
+                    obj.put("id", c.getId());
+                    obj.put("code", c.getCode());
+                    obj.put("title", c.getTitle());
+                    obj.put("units", c.getUnits());
+                    array.put(obj);
+                }
+
+                sendResponse(exchange, 200, array.toString());
             } catch (Exception e) {
                 sendResponse(exchange, 500, "{\"error\":\"" + e.getMessage() + "\"}");
-            }
-
-        } else if (method.equals("POST") && path.equals("/courses/demand")) 
-        {
-            try {
-                String requestBody = new String(exchange.getRequestBody().readAllBytes());
-                JSONObject json = JsonUtil.parse(requestBody);
-
-                // JSONObject result = CourseService.recordDemand(json);
-                // sendResponse(exchange, 200, JsonUtil.toJson(result));
-            } catch (Exception e) {
-                sendResponse(exchange, 400, "{\"error\":\"" + e.getMessage() + "\"}");
             }
 
         } else {
@@ -42,12 +51,12 @@ public class CourseHandler implements HttpHandler
         }
     }
 
-    private void sendResponse(HttpExchange exchange, int statusCode, String responseBody) throws IOException 
-    {
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(statusCode, responseBody.getBytes().length);
-        OutputStream os = exchange.getResponseBody();
-        os.write(responseBody.getBytes());
-        os.close();
-    }
+    private void sendResponse(HttpExchange exchange, int statusCode, String responseBody) throws IOException {
+    exchange.getResponseHeaders().set("Content-Type", "application/json");
+    exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+    exchange.sendResponseHeaders(statusCode, responseBody.getBytes().length);
+    OutputStream os = exchange.getResponseBody();
+    os.write(responseBody.getBytes());
+    os.close();
+}
 }

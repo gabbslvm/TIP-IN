@@ -1,0 +1,699 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f6f8;
+    color: #252525;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+/* SIDEBAR */
+.side {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 220px;
+    background: #36454F;
+    color: white;
+    padding: 20px 14px;
+    z-index: 2;
+}
+
+.logo {
+    height: 62px;
+    border-bottom: 1px solid #394145;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logoMark {
+    width: 38px;
+    height: 38px;
+    border: 2px solid #f5c400;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f5c400;
+    font-weight: bold;
+}
+
+.logo b {
+    display: block;
+    color: #f5c400;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+}
+
+.logo small {
+    display: block;
+    color: #ddd;
+    font-size: 9px;
+    margin-top: 2px;
+}
+
+.nav button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #ddd;
+    text-align: left;
+    padding: 11px 12px;
+    border-radius: 5px;
+    margin: 2px 0;
+    cursor: pointer;
+}
+
+.nav button:hover,
+.nav button.active {
+    background: #f5c400;
+    color: #151515;
+}
+
+.bottom {
+    position: absolute;
+    bottom: 20px;
+    left: 14px;
+    right: 14px;
+    color: #c7c7c7;
+    font-size: 9px;
+    line-height: 1.4;
+}
+
+/* MAIN CONTENT */
+.main {
+    margin-left: 220px;
+    padding: 20px 24px;
+}
+
+.top {
+    height: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.title h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.title p {
+    margin: 4px 0 0;
+    color: #777;
+    font-size: 12px;
+}
+
+.user {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    font-size: 12px;
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.roleTag {
+    font-size: 11px;
+    font-weight: 600;
+    color: #555;
+    background: #f5f6f8;
+    border: 1px solid #e4e4e4;
+    padding: 4px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+/* CARDS */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.card {
+    background: white;
+    border: 1px solid #e4e4e4;
+    border-radius: 6px;
+    padding: 13px;
+    min-height: 80px;
+}
+
+.card .number {
+    font-size: 21px;
+    font-weight: bold;
+    margin-top: 6px;
+}
+
+.card .label {
+    font-size: 10px;
+    color: #777;
+}
+
+/* PANELS AND GRID */
+.grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 14px;
+}
+
+.panel {
+    background: white;
+    border: 1px solid #e2e2e2;
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 14px;
+}
+
+.panelHead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.panel h3 {
+    font-size: 14px;
+    margin: 0;
+}
+
+.link {
+    font-size: 10px;
+    color: #c39900;
+    cursor: pointer;
+}
+
+/* ANNOUNCEMENTS */
+.announce {
+    border-bottom: 1px solid #eee;
+    padding: 9px 0;
+    font-size: 11px;
+}
+
+.announce:last-child {
+    border: 0;
+}
+
+.announce b {
+    display: block;
+    margin-bottom: 3px;
+}
+
+.muted {
+    color: #777;
+    font-size: 10px;
+}
+
+/* BUTTONS AND TABLES */
+.quick button {
+    display: block;
+    width: 100%;
+    padding: 9px;
+    text-align: left;
+    background: white;
+    border: 0;
+    border-bottom: 1px solid #eee;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.quick button:hover {
+    background: #faf3c8;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+}
+
+th {
+    background: #f5c400;
+    text-align: left;
+    padding: 8px;
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.status {
+    padding: 4px 7px;
+    border-radius: 10px;
+    font-size: 9px;
+    background: #e7f5e9;
+}
+
+.warn {
+    background: #fff1bd;
+}
+
+.red {
+    background: #ffdede;
+}
+
+.toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.toolbar input,
+.toolbar select {
+    border: 1px solid #ddd;
+    padding: 8px;
+    border-radius: 4px;
+    background: white;
+    font-size: 10px;
+}
+
+.toolbar input {
+    flex: 1;
+}
+
+.panel > label {
+    font-size: 11px;
+    display: block;
+    margin: 10px 0 4px;
+    color: #555;
+}
+
+.panel > input,
+.panel > select,
+.panel > textarea {
+    width: 100%;
+    padding: 9px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.btn {
+    border: 0;
+    background: #f5c400;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 10px;
+}
+
+.btn:hover {
+    background: #e3b500;
+}
+
+.close {
+    float: right;
+    border: 0;
+    background: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* MODAL */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #0007;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    backdrop-filter: blur(5px);
+}
+
+.modal.show {
+    display: flex;
+    animation: fadeIn .25s ease both;
+}
+
+.modalBox {
+    background: white;
+    width: 440px;
+    padding: 32px;
+    border-radius: 10px;
+    animation: modalIn .35s ease both;
+}
+
+.modalBox h3 {
+    font-size: 19px;
+    margin: 0 0 10px;
+}
+
+.modalBox p {
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+    .side {
+        width: 180px;
+    }
+
+    .main {
+        margin-left: 180px;
+    }
+
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* SIMPLE APPLE-STYLE ANIMATIONS */
+html {
+    scroll-behavior: smooth;
+}
+
+button,
+.card,
+.panel,
+.nav button,
+.btn,
+.quick button,
+.notify {
+    transition: all 0.25s ease;
+}
+
+.side {
+    animation: slideIn 0.7s ease both;
+}
+
+.top {
+    animation: fadeUp 0.7s ease both;
+}
+
+.page.active {
+    animation: fadeUp 0.5s ease both;
+}
+
+.card {
+    animation: fadeUp 0.6s ease both;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .10);
+    border-color: #f5c400;
+}
+
+.nav button:hover,
+.nav button.active {
+    transform: translateX(4px);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, .12);
+}
+
+.btn:active {
+    transform: scale(.97);
+}
+
+.logoMark {
+    transition: transform .5s ease;
+}
+
+.logo:hover .logoMark {
+    transform: rotate(360deg) scale(1.05);
+}
+
+.quick button:hover {
+    padding-left: 14px;
+    background: #faf3c8;
+}
+
+tr {
+    transition: background .2s ease;
+}
+
+tr:hover {
+    background: #fffdf0;
+}
+
+.close:hover {
+    transform: rotate(90deg);
+}
+
+/* NOTIFICATION ICON */
+.notify {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
+}
+
+.notify:hover {
+    transform: scale(1.08);
+    box-shadow: 0 5px 18px rgba(0, 0, 0, .12);
+}
+
+.bell {
+    position: absolute;
+    left: 10px;
+    top: 8px;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #252525;
+    border-radius: 8px 8px 5px 5px;
+}
+
+.bell::before {
+    content: "";
+    position: absolute;
+    left: 3px;
+    bottom: -5px;
+    width: 5px;
+    height: 2px;
+    background: #252525;
+    border-radius: 2px;
+}
+
+.notifyDot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f5c400;
+    border: 2px solid #fff;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-25px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* LOGIN LANDING PAGE */
+body.loggedOut .side,
+body.loggedOut .main {
+    display: none;
+}
+
+.loginScreen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #36454F 0%, #222b30 100%);
+    padding: 70px 30px;
+}
+
+.loginBrand {
+    text-align: center;
+    margin-bottom: 48px;
+    animation: fadeUp 0.6s ease both;
+}
+
+.loginBrand .logoMark {
+    width: 54px;
+    height: 54px;
+    font-size: 20px;
+    margin: 0 auto 18px;
+}
+
+.loginBrand h1 {
+    color: #f5c400;
+    font-size: 42px;
+    margin: 0;
+    letter-spacing: 0.4px;
+}
+
+.loginBrand p {
+    color: #ddd;
+    font-size: 15px;
+    margin-top: 10px;
+}
+
+.portalGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 26px;
+    max-width: 1080px;
+    width: 100%;
+    animation: fadeUp 0.7s ease both;
+}
+
+.portalCard {
+    background: white;
+    border: 1px solid #e4e4e4;
+    border-radius: 10px;
+    padding: 42px 28px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.portalCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .18);
+    border-color: #f5c400;
+}
+
+.portalCard h3 {
+    margin: 0 0 12px;
+    font-size: 19px;
+}
+
+.portalCard p {
+    font-size: 13px;
+    color: #777;
+    margin: 0 0 20px;
+    min-height: 40px;
+    line-height: 1.5;
+}
+
+.loginFormBox {
+    background: white;
+    border-radius: 10px;
+    padding: 38px;
+    width: 400px;
+    position: relative;
+    animation: fadeUp 0.4s ease both;
+}
+
+.loginFormBox h3 {
+    margin: 0 0 22px;
+    font-size: 18px;
+    text-align: center;
+}
+
+.loginFormBox label {
+    font-size: 12px;
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.loginFormBox input {
+    width: 100%;
+    padding: 11px;
+    margin-bottom: 16px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+    .portalGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .portalGrid {
+        grid-template-columns: 1fr;
+    }
+}
