@@ -2,6 +2,7 @@ package com.tipin;
 
 import com.sun.net.httpserver.HttpServer;
 import com.tipin.handler.CourseHandler;
+import com.tipin.handler.CourseInterestHandler;
 import com.tipin.handler.AuthHandler;
 
 import java.net.InetSocketAddress;
@@ -12,7 +13,8 @@ public class Main {
 
         server.createContext("/api/courses", new CourseHandler());
         server.createContext("/api/auth", new AuthHandler());
-        // add one line per handler you have (sections, petitions, availability, recommendations)
+        server.createContext("/api/demand", new CourseInterestHandler());
+        // add one line per handler (sections, petitions, availability, recommendations)
 
         server.setExecutor(null);
         server.start();

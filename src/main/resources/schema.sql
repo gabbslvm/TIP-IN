@@ -46,3 +46,10 @@ CREATE TABLE recommendations (
   generated_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   suggested_action VARCHAR(255) NOT NULL
 );
+
+CREATE TABLE course_interest (
+  id SERIAL PRIMARY KEY,
+  student_id INT REFERENCES users(id),
+  course_id INT REFERENCES courses(id),
+  date_submitted TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
