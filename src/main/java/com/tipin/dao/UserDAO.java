@@ -7,52 +7,37 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class UserDAO 
-{
-    public void insertUser(User user) throws SQLException 
-    {
+public class UserDAO {
+
+    public void insertUser(User user) throws SQLException {
         String sql = "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)";
-
-        Connection conn = DBConnection.get();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-
-        stmt.setString(1, user.getName());
-        stmt.setString(2, user.getEmail());
-        stmt.setString(3, user.getPassword());
-        stmt.setString(4, user.getRole());
-
-        stmt.executeUpdate();
-
-        stmt.close();
-        conn.close();
+        try (Connection conn = DBConnection.get();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, user.getName());
+            stmt.setString(2, user.getEmail());
+            stmt.setString(3, user.getPassword());
+            stmt.setString(4, user.getRole());
+            stmt.executeUpdate();
+        }
     }
 
-    public User findByEmail(String email) throws SQLException 
-    {
+    public User findByEmail(String email) throws SQLException {
         String sql = "SELECT * FROM users WHERE email = ?";
-
-        Connection conn = DBConnection.get();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        stmt.setString(1, email);
-
-        ResultSet rs = stmt.executeQuery();
-
-        User user = null;
-
-        if (rs.next()) 
-        {
-            user = new User();
-            user.setId(rs.getInt("id"));
-            user.setName(rs.getString("name"));
-            user.setEmail(rs.getString("email"));
-            user.setPassword(rs.getString("password_hash"));
-            user.setRole(rs.getString("role"));
+        try (Connection conn = DBConnection.get();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User();
+                    user.setId(rs.getInt("id"));
+                    user.setName(rs.getString("name"));
+                    user.setEmail(rs.getString("email"));
+                    user.setPassword(rs.getString("password_hash"));
+                    user.setRole(rs.getString("role"));
+                    return user;
+                }
+            }
         }
-
-        rs.close();
-        stmt.close();
-        conn.close();
-
-        return user;
+        return null;
     }
 }

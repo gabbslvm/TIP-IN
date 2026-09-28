@@ -9,78 +9,52 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CourseDAO 
-{
-    public void insertCourse(Course course) throws SQLException 
-    {
+public class CourseDAO {
+
+    public void insertCourse(Course course) throws SQLException {
         String sql = "INSERT INTO courses (code, title, units) VALUES (?, ?, ?)";
-
-        Connection conn = DBConnection.get();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-
-        stmt.setString(1, course.getCode());
-        stmt.setString(2, course.getTitle());
-        stmt.setInt(3, course.getUnits());
-
-        stmt.executeUpdate();
-
-        stmt.close();
-        conn.close();
+        try (Connection conn = DBConnection.get();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, course.getCode());
+            stmt.setString(2, course.getTitle());
+            stmt.setInt(3, course.getUnits());
+            stmt.executeUpdate();
+        }
     }
 
-    public List<Course> getAllCourses() throws SQLException 
-    {
-        String sql = "SELECT * FROM courses";
-
-        Connection conn = DBConnection.get();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        ResultSet rs = stmt.executeQuery();
-
-        List<Course> courses = new ArrayList<Course>();
-
-        while (rs.next()) 
-        {
-            Course course = new Course();
-            course.setId(rs.getInt("id"));
-            course.setCode(rs.getString("code"));
-            course.setTitle(rs.getString("title"));
-            course.setUnits(rs.getInt("units"));
-
-            courses.add(course);
+    public List<Course> getAllCourses() throws SQLException {
+        String sql = "SELECT * FROM courses ORDER BY code";
+        List<Course> courses = new ArrayList<>();
+        try (Connection conn = DBConnection.get();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                courses.add(map(rs));
+            }
         }
-
-        rs.close();
-        stmt.close();
-        conn.close();
-
         return courses;
     }
 
-    public Course findById(int id) throws SQLException 
-    {
+    public Course findById(int id) throws SQLException {
         String sql = "SELECT * FROM courses WHERE id = ?";
-
-        Connection conn = DBConnection.get();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        stmt.setInt(1, id);
-
-        ResultSet rs = stmt.executeQuery();
-
-        Course course = null;
-
-        if (rs.next()) 
-        {
-            course = new Course();
-            course.setId(rs.getInt("id"));
-            course.setCode(rs.getString("code"));
-            course.setTitle(rs.getString("title"));
-            course.setUnits(rs.getInt("units"));
+        try (Connection conn = DBConnection.get();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return map(rs);
+                }
+            }
         }
+        return null;
+    }
 
-        rs.close();
-        stmt.close();
-        conn.close();
-
+    private Course map(ResultSet rs) throws SQLException {
+        Course course = new Course();
+        course.setId(rs.getInt("id"));
+        course.setCode(rs.getString("code"));
+        course.setTitle(rs.getString("title"));
+        course.setUnits(rs.getInt("units"));
         return course;
     }
 }
