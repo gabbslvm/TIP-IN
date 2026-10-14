@@ -2,53 +2,49 @@ package com.tipin.handler;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import com.tipin.model.Recommendation;
 import com.tipin.service.RecommendationService;
+import com.tipin.util.HandlerUtil;
 import com.tipin.util.JsonUtil;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.IOException;
-import java.io.OutputStream;
 
-public class RecommendationHandler implements HttpHandler 
-{
+public class RecommendationHandler implements HttpHandler {
     @Override
-    public void handle(HttpExchange exchange) throws IOException 
-    {
-        String path = exchange.getRequestURI().getPath();
-        String method = exchange.getRequestMethod();
+    public void handle(HttpExchange ex) throws IOException {
+        if (HandlerUtil.handleCors(ex)) return;
+        String path = ex.getRequestURI().getPath();
+        String method = ex.getRequestMethod();
 
-        if (method.equals("GET") && path.equals ("/recommendations")) 
-        {
-            try {
-                // JSONObject result = RecommendationService.getAllRecommendations();
-                // sendResponse(exchange, 200, JsonUtil.toJson(result));
-            } catch (Exception e) {
-                sendResponse(exchange, 500, "{\"error\":\"" + e.getMessage() + "\"}");
+        try {
+            if (method.equals("GET") && path.equals("/api/recommendations")) {
+                JSONArray arr = new JSONArray();
+                for (Recommendation r : RecommendationService.getAll()) {
+                    JSONObject o = new JSONObject();
+                    o.put("id", r.getId());
+                    o.put("course_code", r.getCourseCode());
+                    o.put("course_title", r.getCourseTitle());
+                    o.put("demand_count", r.getDemandCount());
+                    o.put("petition_count", r.getPetitionCount());
+                    o.put("capacity", r.getCapacity());
+                    o.put("suggested_action", r.getSuggestedAction());
+                    o.put("status", r.getStatus());
+                    arr.put(o);
+                }
+                HandlerUtil.sendResponse(ex, 200, arr.toString());
+
+            } else if (method.equals("PUT") && path.startsWith("/api/recommendations/")) {
+                int id = Integer.parseInt(HandlerUtil.lastSegment(ex));
+                String status = JsonUtil.parse(HandlerUtil.readBody(ex)).getString("status");
+                RecommendationService.updateStatus(id, status);
+                HandlerUtil.sendResponse(ex, 200, "{\"message\":\"Updated\"}");
+
+            } else {
+                HandlerUtil.sendError(ex, 404, "Not found");
             }
-
-        } else if (method.equals("PUT") && path.startsWith("/recommendations/"))
-        {
-            String recommendationId = path.substring("/recommendations/".length());
-            try {
-                String requestBody = new String(exchange.getRequestBody().readAllBytes());
-                JSONObject json = JsonUtil.parse(requestBody);
-
-                // JSONObject result = RecommendationService.updateRecommendation(recommendationId, json);
-                // sendResponse(exchange, 200, JsonUtil.toJson(result));
-            } catch (Exception e) {
-                sendResponse(exchange, 400, "{\"error\":\"" + e.getMessage() + "\"}");
-            }
-        } else {
-            sendResponse(exchange, 404, "{\"error\":\"Not found\"}");
+        } catch (Exception e) {
+            HandlerUtil.sendError(ex, 400, e.getMessage());
         }
     }
-
-    private void sendResponse(HttpExchange exchange, int statusCode, String responseBody) throws IOException 
-    {
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(statusCode, responseBody.getBytes().length);
-        OutputStream os = exchange.getResponseBody();
-        os.write(responseBody.getBytes());
-        os.close();
-    }
-    
 }
