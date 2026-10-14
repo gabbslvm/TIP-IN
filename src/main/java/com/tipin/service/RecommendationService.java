@@ -6,7 +6,7 @@ import java.util.List;
 
 public class RecommendationService {
     private static final int PETITION_THRESHOLD = 5;  // "many petitions" for the same course
-    private static final List<String> STATUSES = List.of("NEW", "FOR_REVIEW", "REVIEWED");
+    private static final List<String> STATUSES = List.of("NEW", "FOR_REVIEW", "APPROVED", "DECLINED");
 
     // Checks every course and creates a recommendation if it needs review
     public static void generate() throws Exception {

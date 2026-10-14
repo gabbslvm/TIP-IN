@@ -61,7 +61,7 @@ public class RecommendationDAO {
 
     // Avoids creating the same recommendation again and again
     public boolean hasOpenRecommendation(int courseId) throws SQLException {
-        String sql = "SELECT 1 FROM recommendations WHERE course_id = ? AND status <> 'REVIEWED'";
+        String sql = "SELECT 1 FROM recommendations WHERE course_id = ? AND status IN ('NEW','FOR_REVIEW')";
         try (Connection conn = DBConnection.get();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, courseId);
