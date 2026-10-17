@@ -1,5 +1,6 @@
 // Selected portal role
 let selectedRole = "";
+const API_URL = "https://tipin-api.onrender.com";
 
 // Show login form for chosen portal
 function selectPortal(role) {
@@ -20,7 +21,7 @@ function doLogin() {
     const email = document.getElementById("loginUsername").value;
     const password = document.getElementById("loginPassword").value;
 
-    fetch("http://localhost:8080/api/auth/login", {
+    fetch(API_URL + "/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email, password: password })
