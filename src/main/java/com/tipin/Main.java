@@ -6,7 +6,8 @@ import java.net.InetSocketAddress;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
         server.createContext("/api/auth", new AuthHandler());
         server.createContext("/api/courses", new CourseHandler());
@@ -20,6 +21,6 @@ public class Main {
 
         server.setExecutor(null);
         server.start();
-        System.out.println("Server running on port 8080");
+        System.out.println("Server running on port " + port);
     }
 }
