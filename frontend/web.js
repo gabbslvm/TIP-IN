@@ -1,6 +1,6 @@
 // Selected portal role
 let selectedRole = "";
-const API_URL = "https://tip-in-api.onrender.com";
+const API_URL = "https://tip-in.onrender.com";
 
 // Show login form for chosen portal
 function selectPortal(role) {
