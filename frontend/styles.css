@@ -21,7 +21,7 @@ select {
     left: 0;
     top: 0;
     bottom: 0;
-    width: 220px;
+    width: 250px;
     background: #36454F;
     color: white;
     padding: 20px 14px;
@@ -52,7 +52,7 @@ select {
 .logo b {
     display: block;
     color: #f5c400;
-    font-size: 22px;
+    font-size: 26px;
     font-weight: 800;
     letter-spacing: 0.3px;
 }
@@ -60,7 +60,7 @@ select {
 .logo small {
     display: block;
     color: #ddd;
-    font-size: 9px;
+    font-size: 11px;
     margin-top: 2px;
 }
 
@@ -70,7 +70,8 @@ select {
     background: transparent;
     color: #ddd;
     text-align: left;
-    padding: 11px 12px;
+    padding: 14px 16px;
+    font-size: 15px;
     border-radius: 5px;
     margin: 2px 0;
     cursor: pointer;
@@ -88,45 +89,45 @@ select {
     left: 14px;
     right: 14px;
     color: #c7c7c7;
-    font-size: 9px;
+    font-size: 11px;
     line-height: 1.4;
 }
 
 /* MAIN CONTENT */
 .main {
-    margin-left: 220px;
-    padding: 20px 24px;
+    margin-left: 250px;
+    padding: 28px 32px;
 }
 
 .top {
-    height: 48px;
+    height: 60px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 14px;
+    margin-bottom: 20px;
 }
 
 .title h2 {
     margin: 0;
-    font-size: 22px;
+    font-size: 28px;
 }
 
 .title p {
     margin: 4px 0 0;
     color: #777;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .user {
     display: flex;
     gap: 12px;
     align-items: center;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .avatar {
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: #ddd;
     display: flex;
@@ -135,12 +136,12 @@ select {
 }
 
 .roleTag {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     color: #555;
     background: #f5f6f8;
     border: 1px solid #e4e4e4;
-    padding: 4px 10px;
+    padding: 6px 12px;
     border-radius: 12px;
     white-space: nowrap;
 }
@@ -157,26 +158,26 @@ select {
 .cards {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-    margin-bottom: 14px;
+    gap: 16px;
+    margin-bottom: 20px;
 }
 
 .card {
     background: white;
     border: 1px solid #e4e4e4;
     border-radius: 6px;
-    padding: 13px;
-    min-height: 80px;
+    padding: 18px;
+    min-height: 100px;
 }
 
 .card .number {
-    font-size: 21px;
+    font-size: 30px;
     font-weight: bold;
     margin-top: 6px;
 }
 
 .card .label {
-    font-size: 10px;
+    font-size: 13px;
     color: #777;
 }
 
@@ -184,31 +185,31 @@ select {
 .grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 14px;
+    gap: 20px;
 }
 
 .panel {
     background: white;
     border: 1px solid #e2e2e2;
     border-radius: 6px;
-    padding: 14px;
-    margin-bottom: 14px;
+    padding: 22px;
+    margin-bottom: 20px;
 }
 
 .panelHead {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 16px;
 }
 
 .panel h3 {
-    font-size: 14px;
+    font-size: 18px;
     margin: 0;
 }
 
 .link {
-    font-size: 10px;
+    font-size: 13px;
     color: #c39900;
     cursor: pointer;
 }
@@ -216,8 +217,8 @@ select {
 /* ANNOUNCEMENTS */
 .announce {
     border-bottom: 1px solid #eee;
-    padding: 9px 0;
-    font-size: 11px;
+    padding: 14px 0;
+    font-size: 15px;
 }
 
 .announce:last-child {
@@ -231,19 +232,19 @@ select {
 
 .muted {
     color: #777;
-    font-size: 10px;
+    font-size: 13px;
 }
 
 /* BUTTONS AND TABLES */
 .quick button {
     display: block;
     width: 100%;
-    padding: 9px;
+    padding: 14px;
     text-align: left;
     background: white;
     border: 0;
     border-bottom: 1px solid #eee;
-    font-size: 11px;
+    font-size: 15px;
     cursor: pointer;
 }
 
@@ -254,24 +255,24 @@ select {
 table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 10px;
+    font-size: 14px;
 }
 
 th {
     background: #f5c400;
     text-align: left;
-    padding: 8px;
+    padding: 12px;
 }
 
 td {
-    padding: 8px;
+    padding: 12px;
     border-bottom: 1px solid #eee;
 }
 
 .status {
-    padding: 4px 7px;
+    padding: 5px 10px;
     border-radius: 10px;
-    font-size: 9px;
+    font-size: 12px;
     background: #e7f5e9;
 }
 
@@ -292,10 +293,10 @@ td {
 .toolbar input,
 .toolbar select {
     border: 1px solid #ddd;
-    padding: 8px;
+    padding: 11px;
     border-radius: 4px;
     background: white;
-    font-size: 10px;
+    font-size: 14px;
 }
 
 .toolbar input {
@@ -303,9 +304,9 @@ td {
 }
 
 .panel > label {
-    font-size: 11px;
+    font-size: 14px;
     display: block;
-    margin: 10px 0 4px;
+    margin: 14px 0 6px;
     color: #555;
 }
 
@@ -313,10 +314,10 @@ td {
 .panel > select,
 .panel > textarea {
     width: 100%;
-    padding: 9px;
+    padding: 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 14px;
     font-family: inherit;
     resize: vertical;
 }
@@ -324,10 +325,10 @@ td {
 .btn {
     border: 0;
     background: #f5c400;
-    padding: 8px 12px;
+    padding: 10px 16px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 10px;
+    font-size: 14px;
 }
 
 .btn:hover {
@@ -368,21 +369,22 @@ td {
 }
 
 .modalBox h3 {
-    font-size: 19px;
+    font-size: 22px;
     margin: 0 0 10px;
 }
 
 .modalBox p {
-    font-size: 13px;
+    font-size: 15px;
 }
 
 @media (max-width: 900px) {
     .side {
-        width: 180px;
+        width: 200px;
     }
 
     .main {
-        margin-left: 180px;
+        margin-left: 200px;
+        padding: 20px;
     }
 
     .cards {
@@ -454,7 +456,7 @@ button,
 }
 
 .quick button:hover {
-    padding-left: 14px;
+    padding-left: 20px;
     background: #faf3c8;
 }
 
@@ -473,8 +475,8 @@ tr:hover {
 /* NOTIFICATION ICON */
 .notify {
     position: relative;
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
     border: 0;
     border-radius: 50%;
     background: #fff;
@@ -489,8 +491,8 @@ tr:hover {
 
 .bell {
     position: absolute;
-    left: 10px;
-    top: 8px;
+    left: 13px;
+    top: 11px;
     width: 14px;
     height: 14px;
     border: 2px solid #252525;
@@ -510,8 +512,8 @@ tr:hover {
 
 .notifyDot {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 7px;
+    right: 7px;
     width: 8px;
     height: 8px;
     border-radius: 50%;
