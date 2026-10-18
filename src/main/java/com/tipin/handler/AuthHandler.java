@@ -8,8 +8,11 @@ import com.tipin.util.HandlerUtil;
 import com.tipin.util.JsonUtil;
 import org.json.JSONObject;
 import java.io.IOException;
+import java.util.List;
 
 public class AuthHandler implements HttpHandler {
+    private static final List<String> ROLES = List.of("student", "professor", "coordinator");
+
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if (HandlerUtil.handleCors(exchange)) return;
@@ -25,9 +28,17 @@ public class AuthHandler implements HttpHandler {
             JSONObject json = JsonUtil.parse(HandlerUtil.readBody(exchange));
 
             if (path.equals("/api/auth/login")) {
-                User user = AuthService.login(json.getString("email"), json.getString("password"));
+                String portal = json.getString("role").toLowerCase();
+                User user = AuthService.login(
+                        json.getString("email").trim().toLowerCase(),
+                        json.getString("password"));
                 if (user == null) {
                     HandlerUtil.sendError(exchange, 401, "Invalid email or password");
+                    return;
+                }
+                if (!user.getRole().equalsIgnoreCase(portal)) {
+                    HandlerUtil.sendError(exchange, 403,
+                            "This is not a " + portal + " account. Please use the correct portal.");
                     return;
                 }
                 JSONObject userJson = new JSONObject();
@@ -38,12 +49,33 @@ public class AuthHandler implements HttpHandler {
                 HandlerUtil.sendResponse(exchange, 200, userJson.toString());
 
             } else if (path.equals("/api/auth/register")) {
+                String role = json.getString("role").toLowerCase();
+                String password = json.getString("password");
+                if (!ROLES.contains(role)) {
+                    HandlerUtil.sendError(exchange, 400, "Invalid role");
+                    return;
+                }
+                if (password.length() < 8) {
+                    HandlerUtil.sendError(exchange, 400, "Password must be at least 8 characters");
+                    return;
+                }
+
                 User newUser = new User();
-                newUser.setName(json.getString("name"));
-                newUser.setEmail(json.getString("email"));
-                newUser.setPassword(json.getString("password"));
-                newUser.setRole(json.getString("role"));
-                AuthService.register(newUser);
+                newUser.setName(json.getString("name").trim());
+                newUser.setEmail(json.getString("email").trim().toLowerCase());
+                newUser.setPassword(password);
+                newUser.setRole(role);
+
+                try {
+                    AuthService.register(newUser);
+                } catch (Exception e) {
+                    String msg = e.getMessage() == null ? "" : e.getMessage();
+                    if (msg.contains("duplicate key")) {
+                        HandlerUtil.sendError(exchange, 409, "Email is already registered");
+                        return;
+                    }
+                    throw e;
+                }
 
                 JSONObject ok = new JSONObject();
                 ok.put("message", "User registered successfully");

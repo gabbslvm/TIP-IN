@@ -585,115 +585,248 @@ body.loggedOut .main {
 .loginScreen {
     min-height: 100vh;
     display: flex;
+}
+
+/* LEFT: brand (centered) */
+.loginLeft {
+    flex: 1;
+    background: #36454F;
+    display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(180deg, #36454F 0%, #222b30 100%);
-    padding: 70px 30px;
+    padding: 40px;
 }
 
 .loginBrand {
+    margin: auto;
     text-align: center;
-    margin-bottom: 48px;
-    animation: fadeUp 0.6s ease both;
-}
-
-.loginBrand .logoMark {
-    width: 54px;
-    height: 54px;
-    font-size: 20px;
-    margin: 0 auto 18px;
 }
 
 .loginBrand h1 {
-    color: #f5c400;
-    font-size: 42px;
     margin: 0;
-    letter-spacing: 0.4px;
+    font-size: 64px;
+    color: #f5c400;
+    letter-spacing: 1px;
 }
 
 .loginBrand p {
+    margin: 10px 0 0;
+    font-size: 18px;
     color: #ddd;
+}
+
+.loginPoints {
+    list-style: none;
+    display: inline-block;
+    text-align: left;
+    margin: 40px 0 0;
+    padding: 24px 0 0;
+    border-top: 1px solid #4d5d68;
+}
+
+.loginPoints li {
+    color: #ccd3d8;
     font-size: 15px;
-    margin-top: 10px;
+    margin-bottom: 12px;
 }
 
-.portalGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 26px;
-    max-width: 1080px;
-    width: 100%;
-    animation: fadeUp 0.7s ease both;
+.loginPoints li::before {
+    content: "✓";
+    color: #f5c400;
+    font-weight: bold;
+    margin-right: 10px;
 }
 
-.portalCard {
-    background: white;
-    border: 1px solid #e4e4e4;
-    border-radius: 10px;
-    padding: 42px 28px;
+.loginFooter {
     text-align: center;
+    font-size: 12px;
+    color: #aab4ba;
+}
+
+/* RIGHT: role list and form */
+.loginRight {
+    flex: 1;
+    background: #f5f6f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+#portalSection,
+.loginFormBox {
+    width: 100%;
+    max-width: 480px;
+}
+
+#portalSection h2 {
+    margin: 0 0 8px;
+    font-size: 30px;
+}
+
+.loginHint {
+    margin: 0 0 28px;
+    color: #777;
+    font-size: 15px;
+}
+
+.portalList {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.portalItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 22px 24px;
+    text-align: left;
+    background: white;
+    border: 1px solid #ddd;
+    border-left: 5px solid #ddd;
+    border-radius: 6px;
     cursor: pointer;
 }
 
-.portalCard:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, .18);
-    border-color: #f5c400;
+.portalItem b {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 6px;
 }
 
-.portalCard h3 {
-    margin: 0 0 12px;
-    font-size: 19px;
-}
-
-.portalCard p {
-    font-size: 13px;
+.portalItem small {
     color: #777;
-    margin: 0 0 20px;
-    min-height: 40px;
-    line-height: 1.5;
+    font-size: 14px;
 }
 
-.loginFormBox {
-    background: white;
-    border-radius: 10px;
-    padding: 38px;
-    width: 400px;
-    position: relative;
-    animation: fadeUp 0.4s ease both;
+.portalItem i {
+    font-style: normal;
+    font-size: 24px;
+    color: #aaa;
+}
+
+.portalItem:hover,
+.portalItem:focus-visible {
+    border-color: #f5c400;
+    background: #fffdf0;
+    outline: none;
+}
+
+.portalItem:hover i {
+    color: #151515;
+    transform: translateX(4px);
+}
+
+/* Form */
+.backLink {
+    border: 0;
+    background: none;
+    padding: 0;
+    color: #777;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.backLink:hover {
+    color: #151515;
 }
 
 .loginFormBox h3 {
-    margin: 0 0 22px;
-    font-size: 18px;
-    text-align: center;
+    margin: 14px 0 20px;
+    font-size: 26px;
 }
 
 .loginFormBox label {
-    font-size: 12px;
     display: block;
-    margin-bottom: 5px;
+    font-size: 14px;
     color: #555;
+    margin-bottom: 6px;
 }
 
 .loginFormBox input {
     width: 100%;
-    padding: 11px;
-    margin-bottom: 16px;
-    border: 1px solid #ddd;
+    padding: 13px;
+    margin-bottom: 18px;
+    border: 1px solid #ccc;
     border-radius: 5px;
+    font-size: 15px;
+    background: white;
+}
+
+.loginFormBox input:focus {
+    outline: none;
+    border-color: #f5c400;
+    box-shadow: 0 0 0 3px #f5c40033;
+}
+
+.loginFormBox .showPass {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 13px;
+    margin-bottom: 18px;
+    cursor: pointer;
 }
 
-@media (max-width: 900px) {
-    .portalGrid {
-        grid-template-columns: 1fr 1fr;
+.loginFormBox .showPass input {
+    width: auto;
+    margin: 0;
+}
+
+.loginFormBox .btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.authTabs {
+    display: flex;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #ddd;
+}
+
+.authTabs button {
+    flex: 1;
+    border: 0;
+    background: none;
+    padding: 12px;
+    font-size: 15px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #777;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+}
+
+.authTabs button.active {
+    color: #151515;
+    border-bottom-color: #f5c400;
+}
+
+/* Small screens: stack */
+@media (max-width: 800px) {
+    .loginScreen {
+        flex-direction: column;
     }
-}
 
-@media (max-width: 700px) {
-    .portalGrid {
-        grid-template-columns: 1fr;
+    .loginLeft {
+        flex: none;
+        padding: 32px 24px;
+    }
+
+    .loginBrand h1 {
+        font-size: 42px;
+    }
+
+    .loginPoints,
+    .loginFooter {
+        display: none;
+    }
+
+    .loginRight {
+        align-items: flex-start;
+        padding: 32px 24px;
     }
 }
