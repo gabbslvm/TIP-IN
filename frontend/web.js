@@ -18,7 +18,7 @@ function backToPortals() {
 
 // Complete login and enter the system
 function doLogin() {
-    const email = document.getElementById("loginUsername").value;
+    const email = document.getElementById("loginUsername").value.trim();
     const password = document.getElementById("loginPassword").value;
 
     fetch(API_URL + "/api/auth/login", {
