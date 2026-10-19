@@ -10,44 +10,35 @@
 </head>
 
 <body class="loggedOut">
-    <!-- LOGIN LANDING PAGE -->
+    <!-- LOGIN SCREEN -->
     <div class="loginScreen" id="loginScreen">
 
-        <div class="loginLeft">
-            <div class="loginBrand">
-                <h1>T.I.P-IN</h1>
-                <p>Integrated Enrollment Support System</p>
+    <div class="loginBrand">
+        <h1>T.I.P - IN</h1>
+        <p>Integrated Enrollment Support System</p>
+    </div>
 
-                <ul class="loginPoints">
-                    <li>Submit and track section petitions online</li>
-                    <li>Show coordinators real course demand</li>
-                    <li>Plan sections around professor availability</li>
-                </ul>
-            </div>
-            <div class="loginFooter">Technological Institute of the Philippines · Quezon City</div>
-        </div>
-
+    <div class="loginMain">
         <div class="loginRight">
 
             <!-- ROLE SELECTION -->
             <div id="portalSection">
-                <h2>Select your role</h2>
-                <p class="loginHint">New here? Pick your role, then choose Register.</p>
+                <h2>Welcome</h2>
+                <p class="loginHint">Select your role to continue. New here? Pick your role, then choose Register.</p>
 
                 <div class="portalList">
                     <button class="portalItem" onclick="selectPortal('student')">
-                        <span><b>Student</b><small>Indicate course interest and submit petitions</small></span>
+                        <span class="portalText"><b>Student</b><small>Indicate course interest and submit petitions</small></span>
                         <i>→</i>
                     </button>
 
                     <button class="portalItem" onclick="selectPortal('professor')">
-                        <span><b>Professor</b><small>Set your teaching availability</small></span>
+                        <span class="portalText"><b>Professor</b><small>Set your teaching availability</small></span>
                         <i>→</i>
                     </button>
 
                     <button class="portalItem" onclick="selectPortal('coordinator')">
-                        <span><b>Program Coordinator</b><small>Review petitions and section
-                                recommendations</small></span>
+                        <span class="portalText"><b>Program Coordinator</b><small>Review petitions and section recommendations</small></span>
                         <i>→</i>
                     </button>
                 </div>
@@ -94,8 +85,7 @@
                         placeholder="Re-enter your password">
 
                     <label class="showPass">
-                        <input type="checkbox" onchange="togglePassword(['regPassword','regConfirm'], this)"> Show
-                        passwords
+                        <input type="checkbox" onchange="togglePassword(['regPassword','regConfirm'], this)"> Show passwords
                     </label>
 
                     <button class="btn" onclick="doRegister()">Create Account</button>
@@ -103,13 +93,22 @@
             </div>
 
         </div>
+
+        <ul class="loginPoints">
+            <li><b>Online petitions</b><span>Submit and track section requests</span></li>
+            <li><b>Real course demand</b><span>See what students need</span></li>
+            <li><b>Smarter sections</b><span>Plan around professor availability</span></li>
+        </ul>
     </div>
+
+    <div class="loginFooter">Technological Institute of the Philippines · Quezon City</div>
+</div>
 
     <!-- SIDEBAR -->
     <aside class="side">
         <div class="logo">
             <div>
-                <b>T.I.P-IN</b>
+                <b>T.I.P - IN</b>
                 <small>Integrated Enrollment<br>Support System</small>
             </div>
         </div>
