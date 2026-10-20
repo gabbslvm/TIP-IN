@@ -17,8 +17,8 @@ function postJson(path, body) {
         body: JSON.stringify(body),
     }).then(function (response) {
         return response.json().then(function (data) {
-        if (!response.ok) throw new Error(data.error || "Request failed");
-        return data;
+            if (!response.ok) throw new Error(data.error || "Request failed");
+            return data;
         });
     });
 }
@@ -83,11 +83,11 @@ function backToPortals() {
 function switchAuthTab(tab) {
     const isLogin = tab === "login";
     document.getElementById("loginForm").style.display = isLogin
-    ? "block"
-    : "none";
+        ? "block"
+        : "none";
     document.getElementById("registerForm").style.display = isLogin
-    ? "none"
-    : "block";
+        ? "none"
+        : "block";
     document.getElementById("tabLogin").classList.toggle("active", isLogin);
     document.getElementById("tabRegister").classList.toggle("active", !isLogin);
 }
@@ -97,8 +97,8 @@ function doLogin() {
     const password = document.getElementById("loginPassword").value;
 
     if (!email || !password) {
-    alert("Please enter your email and password.");
-    return;
+        alert("Please enter your email and password.");
+        return;
     }
 
     postJson("/api/auth/login", {
@@ -135,16 +135,16 @@ function doRegister() {
         password: password,
         role: selectedRole,
     })
-    .then(function () {
-        alert("Account created! You can now log in.");
-        document.getElementById("regName").value = "";
-        document.getElementById("regPassword").value = "";
-        document.getElementById("regConfirm").value = "";
-        document.getElementById("loginUsername").value = email;
-        document.getElementById("regEmail").value = "";
-        switchAuthTab("login");
-    })
-    .catch(showError);
+        .then(function () {
+            alert("Account created! You can now log in.");
+            document.getElementById("regName").value = "";
+            document.getElementById("regPassword").value = "";
+            document.getElementById("regConfirm").value = "";
+            document.getElementById("loginUsername").value = email;
+            document.getElementById("regEmail").value = "";
+            switchAuthTab("login");
+        })
+        .catch(showError);
 }
 
 // Enter the system after a successful login
@@ -163,8 +163,8 @@ function enterSystem(user) {
 // Show only the elements allowed for this role
 function applyRole(role) {
     document.querySelectorAll("[data-roles]").forEach(function (el) {
-    const allowed = el.dataset.roles.split(" ");
-    el.style.display = allowed.includes(role) ? "" : "none";
+        const allowed = el.dataset.roles.split(" ");
+        el.style.display = allowed.includes(role) ? "" : "none";
     });
 
     pageInfo.petitions[1] =
@@ -173,8 +173,30 @@ function applyRole(role) {
             : "Request the opening of a new section and track the status of your requests.";
 }
 
+// ---------- Mobile sidebar ----------
+function toggleSidebar() {
+    document.querySelector(".side").classList.toggle("open");
+    document.getElementById("overlay").classList.toggle("show");
+}
+
+function closeSidebar() {
+    document.querySelector(".side").classList.remove("open");
+    document.getElementById("overlay").classList.remove("show");
+}
+
+// Esc closes the sidebar
+document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeSidebar();
+});
+
+// Reset when the screen grows back to desktop size
+window.addEventListener("resize", function () {
+    if (window.innerWidth > 900) closeSidebar();
+});
+
 // ---------- Logout ----------
 function openLogoutModal() {
+    closeSidebar();
     document.getElementById("logoutModal").classList.add("show");
 }
 
@@ -190,6 +212,7 @@ function confirmLogout() {
 function logout() {
     currentUser = null;
     selectedRole = "";
+    closeSidebar();
     document.getElementById("loginScreen").style.display = "flex";
     document.body.classList.add("loggedOut");
     document.getElementById("loginFormBox").style.display = "none";
@@ -240,8 +263,8 @@ function showPage(pageId, button) {
         navButton.classList.remove("active");
     });
     const navButton =
-    button ||
-    document.querySelector(".nav button[onclick*=\"'" + pageId + "'\"]");
+        button ||
+        document.querySelector(".nav button[onclick*=\"'" + pageId + "'\"]");
     if (navButton) navButton.classList.add("active");
 
     document.getElementById("pageTitle").textContent = pageInfo[pageId][0];
@@ -250,6 +273,7 @@ function showPage(pageId, button) {
     if (pageId === "interest") loadCourses();
     if (pageId === "recommendations") loadRecommendations();
 
+    closeSidebar();
     window.scrollTo(0, 0);
 }
 
@@ -264,9 +288,9 @@ function filterTable(tableId, searchText) {
     const text = searchText.toLowerCase();
 
     for (let i = 1; i < rows.length; i++) {
-    rows[i].style.display = rows[i].innerText.toLowerCase().includes(text)
-        ? ""
-        : "none";
+        rows[i].style.display = rows[i].innerText.toLowerCase().includes(text)
+            ? ""
+            : "none";
     }
 }
 
@@ -274,11 +298,11 @@ function filterTable(tableId, searchText) {
 // the backend once a petitions API exists, e.g. via fetch())
 let petitions = [
     {
-    id: "PET-2026-0028",
-    reason: "Course is Fully Enrolled",
-    subject: "CS 201 (Data Structures & Algorithms) - IT21S6",
-    date: "May 16, 2026",
-    status: "Pending",
+        id: "PET-2026-0028",
+        reason: "Course is Fully Enrolled",
+        subject: "CS 201 (Data Structures & Algorithms) - IT21S6",
+        date: "May 16, 2026",
+        status: "Pending",
     },
 ];
 
@@ -294,28 +318,18 @@ function renderPetitions() {
     }
 
     petitions.forEach(function (p) {
-    const statusClass =
-        p.status === "Pending" ? "warn" : p.status === "Denied" ? "red" : "";
+        const statusClass =
+            p.status === "Pending" ? "warn" : p.status === "Denied" ? "red" : "";
 
-    const row = table.insertRow(-1);
-    row.innerHTML =
-        "<td>" +
-        p.id +
-        "</td>" +
-        "<td>" +
-        p.reason +
-        "</td>" +
-        "<td>" +
-        p.subject +
-        "</td>" +
-        "<td>" +
-        p.date +
-        "</td>" +
-        '<td><span class="status ' +
-        statusClass +
-        '">' +
-        p.status +
-        "</span></td>";
+        const row = table.insertRow(-1);
+        row.innerHTML =
+            "<td>" + esc(p.id) + "</td>" +
+            "<td>" + esc(p.reason) + "</td>" +
+            "<td>" + esc(p.subject) + "</td>" +
+            "<td>" + esc(p.date) + "</td>" +
+            '<td><span class="status ' + statusClass + '">' +
+            esc(p.status) +
+            "</span></td>";
     });
 
     updatePetitionCounts();
@@ -336,18 +350,18 @@ function submitPetition() {
     const reason = document.getElementById("petitionType").value;
     const courseSelect = document.getElementById("petitionCourse").value;
     const courseOther = document
-    .getElementById("petitionCourseOther")
-    .value.trim();
+        .getElementById("petitionCourseOther")
+        .value.trim();
     const section = document.getElementById("petitionSection").value.trim();
     const details = document.getElementById("petitionDetails").value.trim();
 
     const course = courseSelect === "Other" ? courseOther : courseSelect;
 
     if (!course || !section || !details) {
-    alert(
-        "Please fill out the course, desired section, and details before submitting.",
-    );
-    return;
+        alert(
+            "Please fill out the course, desired section, and details before submitting.",
+        );
+        return;
     }
 
     const subject = course + " - " + section;
@@ -379,8 +393,8 @@ function submitPetition() {
 // Recalculate the summary cards from the current `petitions` array
 function updatePetitionCounts() {
     let pending = 0,
-    approved = 0,
-    denied = 0;
+        approved = 0,
+        denied = 0;
 
     petitions.forEach(function (p) {
         if (p.status === "Pending") pending++;
@@ -400,102 +414,84 @@ renderPetitions();
 // ---------- STUDENT: course interest ----------
 function loadCourses() {
     getJson("/api/courses")
-    .then(function (courses) {
-        const table = document.getElementById("interestTable");
-        while (table.rows.length > 1) table.deleteRow(1);
+        .then(function (courses) {
+            const table = document.getElementById("interestTable");
+            while (table.rows.length > 1) table.deleteRow(1);
 
-        courses.forEach(function (c) {
-        const row = table.insertRow(-1);
-        row.innerHTML =
-            "<td>" +
-            esc(c.code) +
-            "</td>" +
-            "<td>" +
-            esc(c.title) +
-            "</td>" +
-            "<td>" +
-            c.units +
-            "</td>" +
-            '<td><button class="btn" onclick="markInterest(' +
-            c.id +
-            ")\">I'm Interested</button></td>";
-        });
-    })
-    .catch(showError);
+            courses.forEach(function (c) {
+                const row = table.insertRow(-1);
+                row.innerHTML =
+                    "<td>" + esc(c.code) + "</td>" +
+                    "<td>" + esc(c.title) + "</td>" +
+                    "<td>" + c.units + "</td>" +
+                    '<td><button class="btn" onclick="markInterest(' +
+                    c.id +
+                    ")\">I'm Interested</button></td>";
+            });
+        })
+        .catch(showError);
 }
 
 function markInterest(courseId) {
     postJson("/api/demand", { student_id: currentUser.id, course_id: courseId })
-    .then(function () {
-        alert("Interest recorded!");
-    })
-    .catch(showError);
+        .then(function () {
+            alert("Interest recorded!");
+        })
+        .catch(showError);
 }
 
 // ---------- COORDINATOR: recommendations ----------
 function loadRecommendations() {
     getJson("/api/recommendations")
-    .then(function (list) {
-        const table = document.getElementById("recTable");
-        while (table.rows.length > 1) table.deleteRow(1);
+        .then(function (list) {
+            const table = document.getElementById("recTable");
+            while (table.rows.length > 1) table.deleteRow(1);
 
-        if (list.length === 0) {
-        table.insertRow(-1).innerHTML =
-            '<td colspan="6" class="muted">No recommendations yet.</td>';
-        return;
-        }
+            if (list.length === 0) {
+                table.insertRow(-1).innerHTML =
+                    '<td colspan="6" class="muted">No recommendations yet.</td>';
+                return;
+            }
 
-        list.forEach(function (r) {
-        const options = ["NEW", "FOR_REVIEW", "APPROVED", "DECLINED"]
-            .map(function (s) {
-            return (
-                "<option" +
-                (s === r.status ? " selected" : "") +
-                ">" +
-                s +
-                "</option>"
-            );
-            })
-            .join("");
+            list.forEach(function (r) {
+                const options = ["NEW", "FOR_REVIEW", "APPROVED", "DECLINED"]
+                    .map(function (s) {
+                        return (
+                            "<option" +
+                            (s === r.status ? " selected" : "") +
+                            ">" +
+                            s +
+                            "</option>"
+                        );
+                    })
+                    .join("");
 
-        table.insertRow(-1).innerHTML =
-            "<td>" +
-            esc(r.course_code) +
-            " - " +
-            esc(r.course_title) +
-            "</td>" +
-            "<td>" +
-            r.demand_count +
-            "</td>" +
-            "<td>" +
-            r.petition_count +
-            "</td>" +
-            "<td>" +
-            r.capacity +
-            "</td>" +
-            "<td>" +
-            esc(r.suggested_action) +
-            "</td>" +
-            '<td><select onchange="updateRecommendation(' +
-            r.id +
-            ', this.value)">' +
-            options +
-            "</select></td>";
-        });
-    })
-    .catch(showError);
+                table.insertRow(-1).innerHTML =
+                    "<td>" + esc(r.course_code) + " - " + esc(r.course_title) + "</td>" +
+                    "<td>" + r.demand_count + "</td>" +
+                    "<td>" + r.petition_count + "</td>" +
+                    "<td>" + r.capacity + "</td>" +
+                    "<td>" + esc(r.suggested_action) + "</td>" +
+                    '<td><select onchange="updateRecommendation(' +
+                    r.id +
+                    ', this.value)">' +
+                    options +
+                    "</select></td>";
+            });
+        })
+        .catch(showError);
 }
 
 function updateRecommendation(id, status) {
     fetch(API_URL + "/api/recommendations/" + id, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: status }),
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: status }),
     })
-    .then(function (response) {
-        if (!response.ok) throw new Error("Update failed");
-    })
-    .catch(showError);
+        .then(function (response) {
+            if (!response.ok) throw new Error("Update failed");
+        })
+        .catch(showError);
 }
 
 // ---------- PROFESSOR: availability (demo only, no backend yet) ----------
@@ -507,8 +503,8 @@ function addAvailability() {
     const end = document.getElementById("availEnd").value;
 
     if (!start || !end || start >= end) {
-    alert("Enter a valid start and end time.");
-    return;
+        alert("Enter a valid start and end time.");
+        return;
     }
 
     availability.push({ day: day, start: start, end: end });
@@ -520,7 +516,7 @@ function renderAvailability() {
     while (table.rows.length > 1) table.deleteRow(1);
 
     availability.forEach(function (a) {
-    table.insertRow(-1).innerHTML =
-        "<td>" + a.day + "</td><td>" + a.start + "</td><td>" + a.end + "</td>";
+        table.insertRow(-1).innerHTML =
+            "<td>" + esc(a.day) + "</td><td>" + esc(a.start) + "</td><td>" + esc(a.end) + "</td>";
     });
 }

@@ -13,96 +13,96 @@
     <!-- LOGIN SCREEN -->
     <div class="loginScreen" id="loginScreen">
 
-    <div class="loginBrand">
-        <h1>T.I.P - IN</h1>
-        <p>Integrated Enrollment Support System</p>
-    </div>
-
-    <div class="loginMain">
-        <div class="loginRight">
-
-            <!-- ROLE SELECTION -->
-            <div id="portalSection">
-                <h2>Welcome</h2>
-                <p class="loginHint">Select your role to continue. New here? Pick your role, then choose Register.</p>
-
-                <div class="portalList">
-                    <button class="portalItem" onclick="selectPortal('student')">
-                        <span class="portalText"><b>Student</b><small>Indicate course interest and submit petitions</small></span>
-                        <i>→</i>
-                    </button>
-
-                    <button class="portalItem" onclick="selectPortal('professor')">
-                        <span class="portalText"><b>Professor</b><small>Set your teaching availability</small></span>
-                        <i>→</i>
-                    </button>
-
-                    <button class="portalItem" onclick="selectPortal('coordinator')">
-                        <span class="portalText"><b>Program Coordinator</b><small>Review petitions and section recommendations</small></span>
-                        <i>→</i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- LOGIN / REGISTER FORM -->
-            <div class="loginFormBox" id="loginFormBox" style="display:none">
-                <button class="backLink" onclick="backToPortals()">← Change role</button>
-                <h3 id="loginFormTitle">Student Portal</h3>
-
-                <div class="authTabs">
-                    <button id="tabLogin" class="active" onclick="switchAuthTab('login')">Log In</button>
-                    <button id="tabRegister" onclick="switchAuthTab('register')">Register</button>
-                </div>
-
-                <div id="loginForm">
-                    <label>Email</label>
-                    <input id="loginUsername" type="email" autocomplete="username" placeholder="Enter your email">
-
-                    <label>Password</label>
-                    <input type="password" id="loginPassword" autocomplete="current-password"
-                        placeholder="Enter your password">
-
-                    <label class="showPass">
-                        <input type="checkbox" onchange="togglePassword(['loginPassword'], this)"> Show password
-                    </label>
-
-                    <button class="btn" onclick="doLogin()">Log In</button>
-                </div>
-
-                <div id="registerForm" style="display:none">
-                    <label>Full Name</label>
-                    <input id="regName" autocomplete="name" placeholder="Enter your full name">
-
-                    <label>Email</label>
-                    <input id="regEmail" type="email" autocomplete="email" placeholder="Enter your email">
-
-                    <label>Password</label>
-                    <input type="password" id="regPassword" autocomplete="new-password"
-                        placeholder="At least 8 characters">
-
-                    <label>Confirm Password</label>
-                    <input type="password" id="regConfirm" autocomplete="new-password"
-                        placeholder="Re-enter your password">
-
-                    <label class="showPass">
-                        <input type="checkbox" onchange="togglePassword(['regPassword','regConfirm'], this)"> Show passwords
-                    </label>
-
-                    <button class="btn" onclick="doRegister()">Create Account</button>
-                </div>
-            </div>
-
+        <div class="loginBrand">
+            <h1>T.I.P - IN</h1>
+            <p>Integrated Enrollment Support System</p>
         </div>
 
-        <ul class="loginPoints">
-            <li><b>Online petitions</b><span>Submit and track section requests</span></li>
-            <li><b>Real course demand</b><span>See what students need</span></li>
-            <li><b>Smarter sections</b><span>Plan around professor availability</span></li>
-        </ul>
-    </div>
+        <div class="loginMain">
+            <div class="loginRight">
 
-    <div class="loginFooter">Technological Institute of the Philippines · Quezon City</div>
-</div>
+                <!-- ROLE SELECTION -->
+                <div id="portalSection">
+                    <h2>Welcome</h2>
+                    <p class="loginHint">Select your role to continue. New here? Pick your role, then choose Register.</p>
+
+                    <div class="portalList">
+                        <button class="portalItem" onclick="selectPortal('student')">
+                            <span class="portalText"><b>Student</b><small>Indicate course interest and submit petitions</small></span>
+                            <i>→</i>
+                        </button>
+
+                        <button class="portalItem" onclick="selectPortal('professor')">
+                            <span class="portalText"><b>Professor</b><small>Set your teaching availability</small></span>
+                            <i>→</i>
+                        </button>
+
+                        <button class="portalItem" onclick="selectPortal('coordinator')">
+                            <span class="portalText"><b>Program Coordinator</b><small>Review petitions and section recommendations</small></span>
+                            <i>→</i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- LOGIN / REGISTER FORM -->
+                <div class="loginFormBox" id="loginFormBox" style="display:none">
+                    <button class="backLink" onclick="backToPortals()">← Change role</button>
+                    <h3 id="loginFormTitle">Student Portal</h3>
+
+                    <div class="authTabs">
+                        <button id="tabLogin" class="active" onclick="switchAuthTab('login')">Log In</button>
+                        <button id="tabRegister" onclick="switchAuthTab('register')">Register</button>
+                    </div>
+
+                    <div id="loginForm">
+                        <label>Email</label>
+                        <input id="loginUsername" type="email" autocomplete="username" placeholder="Enter your email">
+
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" autocomplete="current-password"
+                            placeholder="Enter your password">
+
+                        <label class="showPass">
+                            <input type="checkbox" onchange="togglePassword(['loginPassword'], this)"> Show password
+                        </label>
+
+                        <button class="btn" onclick="doLogin()">Log In</button>
+                    </div>
+
+                    <div id="registerForm" style="display:none">
+                        <label>Full Name</label>
+                        <input id="regName" autocomplete="name" placeholder="Enter your full name">
+
+                        <label>Email</label>
+                        <input id="regEmail" type="email" autocomplete="email" placeholder="Enter your email">
+
+                        <label>Password</label>
+                        <input type="password" id="regPassword" autocomplete="new-password"
+                            placeholder="At least 8 characters">
+
+                        <label>Confirm Password</label>
+                        <input type="password" id="regConfirm" autocomplete="new-password"
+                            placeholder="Re-enter your password">
+
+                        <label class="showPass">
+                            <input type="checkbox" onchange="togglePassword(['regPassword','regConfirm'], this)"> Show passwords
+                        </label>
+
+                        <button class="btn" onclick="doRegister()">Create Account</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <ul class="loginPoints">
+                <li><b>Online petitions</b><span>Submit and track section requests</span></li>
+                <li><b>Real course demand</b><span>See what students need</span></li>
+                <li><b>Smarter sections</b><span>Plan around professor availability</span></li>
+            </ul>
+        </div>
+
+        <div class="loginFooter">Technological Institute of the Philippines · Quezon City</div>
+    </div>
 
     <!-- SIDEBAR -->
     <aside class="side">
@@ -133,13 +133,19 @@
         </div>
     </aside>
 
+    <!-- DARK OVERLAY (mobile sidebar) -->
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
     <!-- MAIN CONTENT -->
     <main class="main">
 
         <div class="top">
-            <div class="title">
-                <h2 id="pageTitle">Good day, </h2>
-                <p id="pageSub">Enrollment Support System • T.I.P - IN</p>
+            <div class="topLeft">
+                <button class="burger" aria-label="Menu" onclick="toggleSidebar()">☰</button>
+                <div class="title">
+                    <h2 id="pageTitle">Good day, </h2>
+                    <p id="pageSub">Enrollment Support System • T.I.P - IN</p>
+                </div>
             </div>
 
             <div class="user">
@@ -278,15 +284,17 @@
                     </select>
                 </div>
 
-                <table id="petitionTable">
-                    <tr>
-                        <th>Petition ID</th>
-                        <th>Reason</th>
-                        <th>Course / Section</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                    </tr>
-                </table>
+                <div class="tableWrap">
+                    <table id="petitionTable">
+                        <tr>
+                            <th>Petition ID</th>
+                            <th>Reason</th>
+                            <th>Course / Section</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -298,14 +306,16 @@
                 </div>
                 <p class="muted" style="margin-bottom:10px">Mark the courses you want to take. This helps the
                     coordinator spot high-demand courses.</p>
-                <table id="interestTable">
-                    <tr>
-                        <th>Code</th>
-                        <th>Title</th>
-                        <th>Units</th>
-                        <th></th>
-                    </tr>
-                </table>
+                <div class="tableWrap">
+                    <table id="interestTable">
+                        <tr>
+                            <th>Code</th>
+                            <th>Title</th>
+                            <th>Units</th>
+                            <th></th>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -338,13 +348,15 @@
                 <div class="panelHead">
                     <h3>My Availability</h3>
                 </div>
-                <table id="availTable">
-                    <tr>
-                        <th>Day</th>
-                        <th>Start</th>
-                        <th>End</th>
-                    </tr>
-                </table>
+                <div class="tableWrap">
+                    <table id="availTable">
+                        <tr>
+                            <th>Day</th>
+                            <th>Start</th>
+                            <th>End</th>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -354,16 +366,18 @@
                 <div class="panelHead">
                     <h3>Section Recommendations</h3>
                 </div>
-                <table id="recTable">
-                    <tr>
-                        <th>Course</th>
-                        <th>Demand</th>
-                        <th>Petitions</th>
-                        <th>Capacity</th>
-                        <th>Suggestion</th>
-                        <th>Status</th>
-                    </tr>
-                </table>
+                <div class="tableWrap">
+                    <table id="recTable">
+                        <tr>
+                            <th>Course</th>
+                            <th>Demand</th>
+                            <th>Petitions</th>
+                            <th>Capacity</th>
+                            <th>Suggestion</th>
+                            <th>Status</th>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </section>
 

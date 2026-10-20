@@ -303,16 +303,16 @@ td {
     flex: 1;
 }
 
-.panel > label {
+.panel>label {
     font-size: 14px;
     display: block;
     margin: 14px 0 6px;
     color: #555;
 }
 
-.panel > input,
-.panel > select,
-.panel > textarea {
+.panel>input,
+.panel>select,
+.panel>textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid #ddd;
@@ -837,6 +837,159 @@ body.loggedOut .main {
 .authTabs button.active {
     color: #151515;
     border-bottom-color: #f5c400;
+}
+
+/* ===== RESPONSIVE ===== */
+.burger {
+    display: none;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
+}
+
+.topLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.title {
+    min-width: 0;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    z-index: 3;
+}
+
+.overlay.show {
+    display: block;
+}
+
+.tableWrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tableWrap table {
+    min-width: 560px;
+}
+
+.cards {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.toolbar {
+    flex-wrap: wrap;
+}
+
+.panelHead {
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.modalBox {
+    width: min(440px, 92vw);
+}
+
+.nav {
+    max-height: calc(100vh - 170px);
+    overflow-y: auto;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid #f5c40088;
+    outline-offset: 2px;
+}
+
+@media (max-height: 650px) {
+    .bottom {
+        display: none;
+    }
+}
+
+@media (max-width: 900px) {
+    .burger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .side {
+        width: 270px;
+        transform: translateX(-100%);
+        animation: none;
+        /* animation would override transform */
+        transition: transform .3s ease;
+        z-index: 4;
+    }
+
+    .side.open {
+        transform: translateX(0);
+        box-shadow: 0 0 40px rgba(0, 0, 0, .4);
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 16px;
+    }
+
+    .top {
+        height: auto;
+        min-height: 60px;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .title h2 {
+        font-size: 20px;
+    }
+
+    .title p {
+        font-size: 12px;
+    }
+
+    .roleTag {
+        display: none;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    .modalBox {
+        padding: 22px;
+    }
+
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    /* stops iOS zoom */
+    .toolbar input,
+    .toolbar select {
+        width: 100%;
+    }
+
+    .btn {
+        padding: 12px 16px;
+    }
 }
 
 /* Small screens */
