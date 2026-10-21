@@ -2,50 +2,53 @@ package com.tipin.handler;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import com.tipin.model.Section;
 import com.tipin.service.SectionService;
-import com.tipin.util.JsonUtil;
+import com.tipin.util.HandlerUtil;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.util.List;
 
-public class SectionHandler implements HttpHandler 
-{
+public class SectionHandler implements HttpHandler {
     @Override
-    public void handle(HttpExchange exchange) throws IOException 
-    {
-        String path = exchange.getRequestURI().getPath();
-        String method = exchange.getRequestMethod();
+    public void handle(HttpExchange ex) throws IOException {
+        if (HandlerUtil.handleCors(ex)) return;
 
-        if (method.equals("GET") && path.equals("/sections")) 
-        {
-            try {
-                // JSONObject result = SectionService.getAllSections();
-                // sendResponse(exchange, 200, JsonUtil.toJson(result));
-            } catch (Exception e) {
-                sendResponse(exchange, 500, "{\"error\":\"" + e.getMessage() + "\"}");
+        String path = ex.getRequestURI().getPath();
+        String method = ex.getRequestMethod();
+
+        try {
+            if (method.equals("GET") && path.equals("/api/sections")) {
+                // ?professor_id=5 -> only that professor's sections; no param -> all sections
+                String professorId = HandlerUtil.getQueryParam(ex, "professor_id");
+
+                List<Section> list;
+                if (professorId == null) {
+                    list = SectionService.getAll();
+                } else {
+                    list = SectionService.getByProfessor(Integer.parseInt(professorId));
+                }
+
+                JSONArray arr = new JSONArray();
+                for (Section s : list) {
+                    JSONObject o = new JSONObject();
+                    o.put("id", s.getId());
+                    o.put("course_code", s.getCourseCode());
+                    o.put("course_title", s.getCourseTitle());
+                    o.put("professor_name", s.getProfessorName());
+                    o.put("schedule", s.getSchedule());
+                    o.put("current_enrollees", s.getCurrentEnrollees());
+                    o.put("capacity", s.getCapacity());
+                    arr.put(o);
+                }
+                HandlerUtil.sendResponse(ex, 200, arr.toString());
+
+            } else {
+                HandlerUtil.sendError(ex, 404, "Not found");
             }
-
-        } else if (method.equals("GET") && path.startsWith("/sections/")) 
-        {
-            String sectionId = path.substring("/sections/".length());
-            try {
-
-                // JSONObject result = SectionService.getSectionById(sectionId);
-                // sendResponse(exchange, 200, JsonUtil.toJson(result));
-            } catch (Exception e) {
-                sendResponse(exchange, 400, "{\"error\":\"" + e.getMessage() + "\"}");
-            }
-
-        } else {
-            sendResponse(exchange, 404, "{\"error\":\"Not found\"}");
+        } catch (Exception e) {
+            HandlerUtil.sendError(ex, 400, e.getMessage());
         }
-    }
-    private void sendResponse(HttpExchange exchange, int statusCode, String responseBody) throws IOException 
-    {
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(statusCode, responseBody.getBytes().length);
-        OutputStream os = exchange.getResponseBody();
-        os.write(responseBody.getBytes());
-        os.close();
     }
 }

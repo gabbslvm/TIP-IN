@@ -16,8 +16,8 @@ public class Main {
         server.createContext("/api/availability", new AvailabilityHandler());
         server.createContext("/api/recommendations", new RecommendationHandler());
         server.createContext("/api/demand", new CourseInterestHandler());
-        // server.createContext("/api/dashboard", new DashboardHandler());
-        // server.createContext("/api/announcements", new AnnouncementHandler());
+        server.createContext("/api/dashboard", new DashboardHandler());
+        server.createContext("/api/announcements", new AnnouncementHandler());
 
         server.setExecutor(null);
         server.start();

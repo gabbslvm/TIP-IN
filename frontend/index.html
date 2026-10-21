@@ -7,6 +7,9 @@
     <title>TIP-IN Enrollment Support System</title>
     <link rel="stylesheet" href="styles.css">
     <script src="web.js" defer></script>
+    <script src="helpers.js" defer></script>
+    <script src="student.js" defer></script>
+    <script src="professor.js" defer></script>
 </head>
 
 <body class="loggedOut">
@@ -116,10 +119,20 @@
         <div class="nav">
             <button class="active" data-roles="student professor coordinator"
                 onclick="showPage('dashboard', this)">Dashboard</button>
-            <button data-roles="student coordinator" onclick="showPage('petitions', this)">Petition Management</button>
-            <button data-roles="student" onclick="showPage('interest', this)">Course Interest</button>
-            <button data-roles="professor" onclick="showPage('availability', this)">My Availability</button>
+
+            <!-- Student -->
+            <button data-roles="student" onclick="showPage('studentPetitions', this)">Petitions</button>
+            <button data-roles="student" onclick="showPage('studentDemand', this)">Demand</button>
+            <button data-roles="student" onclick="showPage('studentSections', this)">Sections</button>
+
+            <!-- Professor -->
+            <button data-roles="professor" onclick="showPage('profSchedule', this)">My Schedule</button>
+            <button data-roles="professor" onclick="showPage('profAvailability', this)">Availability</button>
+
+            <!-- Coordinator -->
+            <button data-roles="coordinator" onclick="showPage('petitions', this)">Petition Management</button>
             <button data-roles="coordinator" onclick="showPage('recommendations', this)">Recommendations</button>
+
             <button id="navAnnouncements" data-roles="student professor coordinator"
                 onclick="showPage('announcements', this)">Announcements</button>
             <button data-roles="student professor coordinator" onclick="showPage('settings', this)">Settings</button>
@@ -163,14 +176,16 @@
 
         <!-- DASHBOARD -->
         <section id="dashboard" class="page active">
+            <div class="cards" id="dashboardCards"></div>
+
             <div class="grid">
                 <div>
                     <div class="panel quick">
                         <h3 style="margin-bottom:8px">Quick Actions</h3>
-                        <button data-roles="student" onclick="showPage('petitions')">Submit & Track My
+                        <button data-roles="student" onclick="showPage('studentPetitions')">Submit & Track My
                             Petitions</button>
-                        <button data-roles="student" onclick="showPage('interest')">Indicate Course Interest</button>
-                        <button data-roles="professor" onclick="showPage('availability')">Update My
+                        <button data-roles="student" onclick="showPage('studentDemand')">Indicate Course Interest</button>
+                        <button data-roles="professor" onclick="showPage('profAvailability')">Update My
                             Availability</button>
                         <button data-roles="coordinator" onclick="showPage('recommendations')">View Section
                             Recommendations</button>
@@ -185,35 +200,164 @@
                             <span class="link" onclick="showPage('announcements')">View All</span>
                         </div>
 
-                        <div class="announce">
-                            <b>Enrollment for Term 1</b>
-                            <span class="muted">Regular enrollment will start on May 20, 2026.</span>
-                        </div>
+                        <div id="dashboardAnnouncements">
+                            <div class="announce">
+                                <b>Enrollment for Term 1</b>
+                                <span class="muted">Regular enrollment will start on May 20, 2026.</span>
+                            </div>
 
-                        <div class="announce">
-                            <b>Course Pre-enlistment Guide</b>
-                            <span class="muted">Please check the enrollment guidelines.</span>
-                        </div>
+                            <div class="announce">
+                                <b>Course Pre-enlistment Guide</b>
+                                <span class="muted">Please check the enrollment guidelines.</span>
+                            </div>
 
-                        <div class="announce">
-                            <b>Section Capacity Review</b>
-                            <span class="muted">Review sections with high demand.</span>
+                            <div class="announce">
+                                <b>Section Capacity Review</b>
+                                <span class="muted">Review sections with high demand.</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- PETITIONS -->
-        <section id="petitions" class="page">
+        <!-- STUDENT: PETITIONS -->
+        <section id="studentPetitions" class="page" data-roles="student">
+            <div class="panel">
+                <div class="panelHead">
+                    <h3>Request a New Section</h3>
+                </div>
+
+                <label>Reason for Request</label>
+                <select id="petReason">
+                    <option>Course is Fully Enrolled</option>
+                    <option>Schedule Conflict with Existing Sections</option>
+                    <option>High Student Demand</option>
+                    <option>Other</option>
+                </select>
+
+                <label>Course</label>
+                <select id="petCourse"></select>
+
+                <label>Desired Section</label>
+                <input id="petSection" placeholder="e.g. IT21S6">
+
+                <label>Details</label>
+                <textarea id="petDetails" rows="3" placeholder="Explain why a new section should be opened..."></textarea>
+
+                <button class="btn" style="margin-top:10px" onclick="submitStudentPetition()">Submit Petition</button>
+            </div>
+
+            <div class="panel">
+                <div class="panelHead">
+                    <h3>My Petitions</h3>
+                </div>
+                <div class="tableWrap">
+                    <table id="petTable">
+                        <tr>
+                            <th>Course</th>
+                            <th>Section</th>
+                            <th>Reason</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- STUDENT: DEMAND -->
+        <section id="studentDemand" class="page" data-roles="student">
+            <div class="panel">
+                <div class="panelHead">
+                    <h3>Course Demand</h3>
+                </div>
+                <p class="muted" style="margin-bottom:10px">Click "Indicate Interest" on the courses you want to take.
+                    This helps the coordinator see which courses are in high demand.</p>
+                <div class="tableWrap">
+                    <table id="demandTable">
+                        <tr>
+                            <th>Code</th>
+                            <th>Title</th>
+                            <th>Units</th>
+                            <th></th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- STUDENT: SECTIONS -->
+        <section id="studentSections" class="page" data-roles="student">
+            <div class="panel">
+                <div class="panelHead">
+                    <h3>Sections</h3>
+                </div>
+                <div class="tableWrap">
+                    <table id="sectionTable">
+                        <tr>
+                            <th>Course</th>
+                            <th>Professor</th>
+                            <th>Schedule</th>
+                            <th>Enrolled</th>
+                            <th>Status</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROFESSOR: MY SCHEDULE -->
+        <section id="profSchedule" class="page" data-roles="professor">
+            <div class="panel">
+                <div class="panelHead">
+                    <h3>My Schedule</h3>
+                </div>
+                <p class="muted" style="margin-bottom:10px">The sections assigned to you. To set when you are free to
+                    teach, use the Availability page.</p>
+                <div class="tableWrap">
+                    <table id="scheduleTable">
+                        <tr>
+                            <th>Course</th>
+                            <th>Schedule</th>
+                            <th>Enrolled</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROFESSOR: AVAILABILITY -->
+        <section id="profAvailability" class="page" data-roles="professor">
+            <div class="panel">
+                <div class="panelHead">
+                    <h3>My Availability</h3>
+                    <button class="btn" onclick="addAvailabilityRow()">+ Add Time Slot</button>
+                </div>
+                <div class="tableWrap">
+                    <table id="availabilityTable">
+                        <tr>
+                            <th>Day</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th></th>
+                        </tr>
+                    </table>
+                </div>
+                <button class="btn" style="margin-top:14px" onclick="saveAvailability()">Save Availability</button>
+            </div>
+        </section>
+
+        <!-- COORDINATOR: PETITIONS -->
+        <section id="petitions" class="page" data-roles="coordinator">
             <div class="cards">
                 <div class="card">
-                    <div class="label">MY PETITIONS</div>
-                    <div class="number" id="totalPetitionsCount">1</div>
+                    <div class="label">TOTAL PETITIONS</div>
+                    <div class="number" id="totalPetitionsCount">0</div>
                 </div>
                 <div class="card">
                     <div class="label">PENDING</div>
-                    <div class="number" id="pendingPetitionsCount">1</div>
+                    <div class="number" id="pendingPetitionsCount">0</div>
                 </div>
                 <div class="card">
                     <div class="label">APPROVED</div>
@@ -225,51 +369,9 @@
                 </div>
             </div>
 
-            <div class="panel" data-roles="student">
-                <div class="panelHead">
-                    <h3>Request a New Section</h3>
-                </div>
-
-                <label>Reason for Request</label>
-                <select id="petitionType">
-                    <option>Course is Fully Enrolled</option>
-                    <option>Schedule Conflict with Existing Sections</option>
-                    <option>High Student Demand</option>
-                    <option>Other</option>
-                </select>
-
-                <label>Course / Subject</label>
-                <select id="petitionCourse" onchange="toggleOtherCourseInput()">
-                    <option value="CS 201 - Data Structures &amp; Algorithms">CS 201 - Data Structures &amp; Algorithms
-                    </option>
-                    <option value="CS 002 - Object Oriented Programming">CS 002 - Object Oriented Programming</option>
-                    <option value="GEC 007 - Science, Technology, and Society">GEC 007 - Science, Technology, and
-                        Society</option>
-                    <option value="GEC 008 - Ethics">GEC 008 - Ethics</option>
-                    <option value="IT 004 - Web Systems and Technologies">IT 004 - Web Systems and Technologies</option>
-                    <option value="SAD 003 - System Analysis and Design">SAD 003 - System Analysis and Design</option>
-                    <option value="BIO 001 - Modern Biology">BIO 001 - Modern Biology</option>
-                    <option value="PE 003 - Physical Activities Toward Health and Fitness 3">PE 003 - Physical
-                        Activities Toward Health and Fitness 3</option>
-                    <option value="Other">Other</option>
-                </select>
-
-                <input id="petitionCourseOther" placeholder="Enter course code and title"
-                    style="display:none;margin-top:8px">
-
-                <label>Desired Section</label>
-                <input id="petitionSection" placeholder="e.g. IT21S6">
-
-                <label>Details</label>
-                <textarea id="petitionDetails" rows="3"
-                    placeholder="Explain why a new section should be opened..."></textarea>
-
-                <button class="btn" style="margin-top:10px" onclick="submitPetition()">Submit Petition</button>
-            </div>
-
             <div class="panel">
                 <div class="panelHead">
-                    <h3>My Petition Status</h3>
+                    <h3>Student Petitions</h3>
                 </div>
 
                 <div class="toolbar">
@@ -292,68 +394,6 @@
                             <th>Course / Section</th>
                             <th>Date</th>
                             <th>Status</th>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- STUDENT: COURSE INTEREST -->
-        <section id="interest" class="page" data-roles="student">
-            <div class="panel">
-                <div class="panelHead">
-                    <h3>Course Interest</h3>
-                </div>
-                <p class="muted" style="margin-bottom:10px">Mark the courses you want to take. This helps the
-                    coordinator spot high-demand courses.</p>
-                <div class="tableWrap">
-                    <table id="interestTable">
-                        <tr>
-                            <th>Code</th>
-                            <th>Title</th>
-                            <th>Units</th>
-                            <th></th>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- PROFESSOR: AVAILABILITY -->
-        <section id="availability" class="page" data-roles="professor">
-            <div class="panel">
-                <div class="panelHead">
-                    <h3>Add Availability</h3>
-                </div>
-
-                <label>Day</label>
-                <select id="availDay">
-                    <option>Monday</option>
-                    <option>Tuesday</option>
-                    <option>Wednesday</option>
-                    <option>Thursday</option>
-                    <option>Friday</option>
-                    <option>Saturday</option>
-                </select>
-
-                <label>Start Time</label>
-                <input type="time" id="availStart">
-
-                <label>End Time</label>
-                <input type="time" id="availEnd">
-
-                <button class="btn" style="margin-top:10px" onclick="addAvailability()">Add</button>
-            </div>
-            <div class="panel">
-                <div class="panelHead">
-                    <h3>My Availability</h3>
-                </div>
-                <div class="tableWrap">
-                    <table id="availTable">
-                        <tr>
-                            <th>Day</th>
-                            <th>Start</th>
-                            <th>End</th>
                         </tr>
                     </table>
                 </div>
