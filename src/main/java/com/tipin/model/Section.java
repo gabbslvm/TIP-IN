@@ -1,4 +1,6 @@
 package com.tipin.model;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Section {
     private int id, currentEnrollees, capacity;
