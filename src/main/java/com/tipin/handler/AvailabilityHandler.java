@@ -17,7 +17,9 @@ public class AvailabilityHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange ex) throws IOException {
-        if (HandlerUtil.handleCors(ex)) return;
+        if (HandlerUtil.handleCors(ex)) {
+            return;
+        }
 
         String path = ex.getRequestURI().getPath();
         String method = ex.getRequestMethod();
@@ -26,7 +28,7 @@ public class AvailabilityHandler implements HttpHandler {
             if (method.equals("GET") && path.equals("/api/availability")) {
                 JSONArray arr = new JSONArray();
 
-                for (ProfAvailability a : AvailabilityService.getAllProfessors()) {
+                for (ProfAvailability a : AvailabilityService.getAll()) {
                     JSONObject o = new JSONObject();
                     o.put("professor_id", a.getProfessorId());
                     o.put("professor_name", a.getProfessorName());
@@ -37,11 +39,15 @@ public class AvailabilityHandler implements HttpHandler {
                 }
 
                 HandlerUtil.sendResponse(ex, 200, arr.toString());
+                return;
 
             } else if (method.equals("GET")
                     && path.startsWith("/api/availability/")) {
 
-                int professorId = Integer.parseInt(HandlerUtil.lastSegment(ex));
+                int professorId = Integer.parseInt(
+                    HandlerUtil.lastSegment(ex)
+                );
+
                 JSONArray arr = new JSONArray();
 
                 for (ProfAvailability a : AvailabilityService.get(professorId)) {
@@ -53,13 +59,17 @@ public class AvailabilityHandler implements HttpHandler {
                 }
 
                 HandlerUtil.sendResponse(ex, 200, arr.toString());
+                return;
 
             } else if (method.equals("PUT")
                     && path.startsWith("/api/availability/")) {
 
-                int professorId = Integer.parseInt(HandlerUtil.lastSegment(ex));
+                int professorId = Integer.parseInt(
+                    HandlerUtil.lastSegment(ex)
+                );
+
                 JSONArray arr = JsonUtil.parse(HandlerUtil.readBody(ex))
-                        .getJSONArray("slots");
+                    .getJSONArray("slots");
 
                 List<ProfAvailability> slots = new ArrayList<>();
 
@@ -75,16 +85,21 @@ public class AvailabilityHandler implements HttpHandler {
                 }
 
                 AvailabilityService.save(professorId, slots);
+
                 HandlerUtil.sendResponse(
                     ex, 200, "{\"message\":\"Availability saved\"}"
                 );
+                return;
 
             } else {
                 HandlerUtil.sendError(ex, 404, "Not found");
             }
 
         } catch (Exception e) {
-            HandlerUtil.sendError(ex, 400, e.getMessage());
+            HandlerUtil.sendError(
+                ex, 400,
+                e.getMessage() == null ? "Request failed" : e.getMessage()
+            );
         }
     }
 }
