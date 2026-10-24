@@ -6,6 +6,7 @@ import java.util.List;
 public class Section {
     private int id, currentEnrollees, capacity;
     private String courseCode, courseTitle, professorName, schedule, sectionCode;
+    private int professorId;
     private List<SectionSlot> slots = new ArrayList<>();
 
     public int getId() {
@@ -78,5 +79,13 @@ public class Section {
 
     public void setSlots(List<SectionSlot> slots) {
         this.slots = slots;
+    }
+
+    public int getProfessorId() {
+        return professorId;
+    }
+
+    public void setProfessorId(int professorId) {
+        this.professorId = professorId;
     }
 }

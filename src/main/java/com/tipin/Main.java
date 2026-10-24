@@ -18,6 +18,8 @@ public class Main {
         server.createContext("/api/demand", new CourseInterestHandler());
         server.createContext("/api/dashboard", new DashboardHandler());
         server.createContext("/api/announcements", new AnnouncementHandler());
+        server.createContext("/api/conflicts", new SectionHandler());
+        server.createContext("/api/professors", new ProfessorHandler());
 
         server.setExecutor(null);
         server.start();

@@ -84,6 +84,7 @@ const PAGES = {
     COORDINATOR: [
         { id: "dashboard", label: "Dashboard", icon: "home", title: greeting, sub: "Enrollment overview.", render: () => renderCoordDashboard() },
         { id: "petitions", label: "Petition Management", icon: "file", title: "Petition Management", sub: "Review petitions submitted by students.", render: () => renderCoordPetitions() },
+        { id: "sections", label: "Sections", icon: "grid", title: "Section Management", sub: "Create sections, assign professors and set schedules.", render: () => renderCoordSections() },
         { id: "recommendations", label: "Recommendations", icon: "star", title: "Section Recommendations", sub: "Review courses flagged for high demand.", render: () => renderRecommendations() },
         { id: "announcements", label: "Announcements", icon: "megaphone", title: "Announcements", sub: "The latest news from the program.", render: () => renderAnnouncements() },
         { id: "settings", label: "Settings", icon: "gear", title: "Settings", sub: "Your account details.", render: () => renderSettings() },

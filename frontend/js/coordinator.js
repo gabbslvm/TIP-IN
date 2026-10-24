@@ -480,5 +480,184 @@ ACTIONS.saveAvail = async function (button) {
     }
 };
 
+// =====================================================
+// 6. COORDINATOR: SECTIONS (create, edit, conflicts)
+// =====================================================
+async function renderCoordSections() {
+    const r = await Promise.all([
+        api("/api/sections"),
+        api("/api/courses"),
+        api("/api/professors"),
+        api("/api/conflicts").catch(function () { return []; }),
+    ]);
+    coordState.sections = r[0];
+    coordState.courses = r[1];
+    coordState.profs = r[2];
+    coordState.conflicts = r[3];
+    coordState.editingSection = null;
+
+    return '<div id="secConflicts">' + conflictsPanel() + "</div>" +
+        '<div id="secFormBox"></div>' +
+        '<div class="panel"><div class="panelHead"><h3>Sections</h3>' +
+        '<button class="btn" data-act="secNew">+ Add Section</button></div>' +
+        '<div id="secTable">' + sectionsAdminTable(true) + "</div></div>";
+}
+
+function profName(id) {
+    const p = coordState.profs.find(function (x) { return x.id === id; });
+    return p ? p.name : "Professor #" + id;
+}
+
+function secLabel(id) {
+    const s = coordState.sections.find(function (x) { return x.id === id; });
+    return s ? s.course_code + " " + String(s.section_code).trim() : "#" + id;
+}
+
+function conflictsPanel() {
+    const list = coordState.conflicts || [];
+    const head = '<div class="panelHead"><h3>Schedule Conflicts</h3><span class="status ' + (list.length ? "red" : "ok") + '">' +
+        (list.length ? list.length + " found" : "None") + "</span></div>";
+    if (!list.length) return '<div class="panel">' + head + '<p class="muted">No overlapping classes for the same professor.</p></div>';
+    return '<div class="panel">' + head + renderTable([
+        { label: "Professor", render: function (c) { return esc(profName(c.professor_id)); } },
+        { label: "Day", key: "day_of_week" },
+        { label: "Sections", render: function (c) { return esc(secLabel(c.section_id_1) + " / " + secLabel(c.section_id_2)); } },
+        { label: "Overlap", render: function (c) {
+            return esc(fmtTime(c.start_1) + " - " + fmtTime(c.end_1)) + "<br>" + esc(fmtTime(c.start_2) + " - " + fmtTime(c.end_2));
+        } },
+    ], list, { animate: false }) + "</div>";
+}
+
+function sectionsAdminTable(animate) {
+    return renderTable([
+        { label: "Course", render: function (s) { return esc(s.course_code) + " - " + esc(s.course_title); } },
+        { label: "Section", render: function (s) { return esc(String(s.section_code).trim() || "-"); } },
+        { label: "Professor", key: "professor_name" },
+        { label: "Schedule", key: "schedule" },
+        { label: "Enrolled", render: function (s) {
+            return esc(s.current_enrollees) + " / " + esc(s.capacity) + meter(s.current_enrollees, s.capacity, STATUS_CLASS[sectionState(s)]);
+        } },
+        { label: "", render: function (s) { return '<button class="btn ghost" data-act="secEdit" data-id="' + s.id + '">Edit</button>'; } },
+    ], coordState.sections, { empty: "No sections yet.", animate: animate });
+}
+
+// IT21S + (highest number used by that course + 1)
+function nextSectionCode(courseId) {
+    const course = coordState.courses.find(function (c) { return c.id === Number(courseId); });
+    let max = 0;
+    coordState.sections.forEach(function (s) {
+        if (course && s.course_code === course.code) {
+            const m = /(\d+)\s*$/.exec(String(s.section_code));
+            if (m) max = Math.max(max, Number(m[1]));
+        }
+    });
+    return "IT21S" + (max + 1);
+}
+
+function secSlotRow(day, start, end) {
+    const options = DAYS.map(function (d) { return "<option" + (d === day ? " selected" : "") + ">" + d + "</option>"; }).join("");
+    return '<tr class="slotRow">' +
+        '<td data-label="Day"><select class="secDay">' + options + "</select></td>" +
+        '<td data-label="Start"><input type="time" class="secStart" value="' + esc(start) + '"></td>' +
+        '<td data-label="End"><input type="time" class="secEnd" value="' + esc(end) + '"></td>' +
+        '<td data-label=""><button class="btn ghost" data-act="secRemoveSlot">Remove</button></td></tr>';
+}
+
+// s = section to edit, or null for a new one
+function secForm(s) {
+    const edit = !!s;
+    const profOptions = '<option value="">Select professor</option>' + coordState.profs.map(function (p) {
+        return '<option value="' + p.id + '"' + (edit && s.professor_id === p.id ? " selected" : "") + ">" + esc(p.name) + "</option>";
+    }).join("");
+    const slots = edit && s.slots.length ? s.slots : [{ day_of_week: "Monday", start_time: "08:00", end_time: "10:00" }];
+
+    const top = edit
+        ? '<div class="field"><label>Course</label><input disabled value="' + esc(s.course_code + " - " + s.course_title) + '"></div>' +
+          '<div class="field"><label>Section Code</label><input disabled value="' + esc(String(s.section_code).trim()) + '"></div>'
+        : '<div class="field"><label for="secCourse">Course</label><select id="secCourse" data-change="secCourseChange">' +
+          coordState.courses.map(function (c) { return '<option value="' + c.id + '">' + esc(c.code) + " - " + esc(c.title) + "</option>"; }).join("") + "</select></div>" +
+          '<div class="field"><label for="secCode">Section Code</label><input id="secCode" value="' + esc(nextSectionCode(coordState.courses[0] && coordState.courses[0].id)) + '"></div>';
+
+    return '<div class="panel"><div class="panelHead"><h3>' + (edit ? "Edit Section" : "New Section") + "</h3></div>" +
+        '<div class="formGrid">' + top +
+        '<div class="field"><label for="secProf">Professor</label><select id="secProf">' + profOptions + "</select></div>" +
+        '<div class="field"><label for="secCap">Capacity</label><input id="secCap" type="number" min="1" value="' + (edit ? s.capacity : 40) + '"></div></div>' +
+        '<div class="toolbar"><button class="btn ghost" data-act="secAddSlot">+ Add Time Slot</button></div>' +
+        '<div class="tableWrap"><table class="availTable"><thead><tr><th>Day</th><th>Start</th><th>End</th><th></th></tr></thead>' +
+        '<tbody id="secBody">' + slots.map(function (x) { return secSlotRow(x.day_of_week, x.start_time, x.end_time); }).join("") + "</tbody></table></div>" +
+        '<div style="display:flex;gap:10px;margin-top:14px">' +
+        '<button class="btn" data-act="secSave">' + (edit ? "Save Changes" : "Create Section") + "</button>" +
+        '<button class="btn ghost" data-act="secCancel">Cancel</button></div></div>';
+}
+
+function showSecForm(s) {
+    coordState.editingSection = s;
+    $("secFormBox").innerHTML = secForm(s);
+    $("secFormBox").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function reloadSections() {
+    const r = await Promise.all([api("/api/sections"), api("/api/conflicts").catch(function () { return []; })]);
+    coordState.sections = r[0];
+    coordState.conflicts = r[1];
+    coordState.editingSection = null;
+    $("secTable").innerHTML = sectionsAdminTable(false);
+    $("secConflicts").innerHTML = conflictsPanel();
+    $("secFormBox").innerHTML = "";
+}
+
+ACTIONS.secNew = function () { showSecForm(null); };
+
+ACTIONS.secEdit = function (btn) {
+    const s = coordState.sections.find(function (x) { return x.id === Number(btn.dataset.id); });
+    if (s) showSecForm(s);
+};
+
+ACTIONS.secCancel = function () { coordState.editingSection = null; $("secFormBox").innerHTML = ""; };
+
+ACTIONS.secCourseChange = function (select) { $("secCode").value = nextSectionCode(select.value); };
+
+ACTIONS.secAddSlot = function () { $("secBody").insertAdjacentHTML("beforeend", secSlotRow("Monday", "08:00", "10:00")); };
+
+ACTIONS.secRemoveSlot = function (btn) { btn.closest("tr").remove(); };
+
+ACTIONS.secSave = async function (button) {
+    const edit = coordState.editingSection;
+    const prof = $("secProf"), cap = $("secCap");
+
+    if (!prof.value) { markInvalid(prof, "Choose a professor."); return; }
+    if (!(Number(cap.value) > 0)) { markInvalid(cap, "Enter a capacity above 0."); return; }
+
+    const slots = [];
+    const rows = Array.from($("secBody").querySelectorAll("tr.slotRow"));
+    for (let i = 0; i < rows.length; i++) {
+        const st = rows[i].querySelector(".secStart"), en = rows[i].querySelector(".secEnd");
+        if (!st.value || !en.value) { markInvalid(st.value ? en : st, "Fill in the start and end time."); return; }
+        if (en.value <= st.value) { markInvalid(en, "End must be later than start."); return; }
+        slots.push({ day_of_week: rows[i].querySelector(".secDay").value, start_time: st.value, end_time: en.value });
+    }
+    if (!slots.length) { toast("Add at least one time slot.", "error"); return; }
+
+    setBusy(button, true, "Saving...");
+    try {
+        if (edit) {
+            await api("/api/sections/" + edit.id, "PUT", { professor_id: Number(prof.value), capacity: Number(cap.value), slots: slots });
+        } else {
+            const code = $("secCode").value.trim();
+            if (!code) { markInvalid($("secCode"), "Enter a section code."); return; }
+            await api("/api/sections", "POST", {
+                course_id: Number($("secCourse").value), professor_id: Number(prof.value),
+                capacity: Number(cap.value), section_code: code, slots: slots,
+            });
+        }
+        toast(edit ? "Section updated!" : "Section created!", "success");
+        await reloadSections();
+    } catch (error) {
+        toastError(error);
+    } finally {
+        setBusy(button, false);
+    }
+};
+
 // the availability page needs its empty-state check right after the HTML is drawn
 PAGES.FACULTY.find(function (p) { return p.id === "availability"; }).mount = syncAvailEmpty;

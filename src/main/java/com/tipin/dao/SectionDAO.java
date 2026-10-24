@@ -15,16 +15,15 @@ import java.util.Map;
 
 public class SectionDAO {
 
-    private static final String SELECT =
-        "SELECT s.id, COALESCE(s.section_code, '') AS section_code, c.code, c.title, "
-        + "COALESCE(u.name, 'TBA') AS professor_name, "
-        + "COALESCE((SELECT string_agg(sc.day_of_week || ' ' || LEFT(sc.start_time::text, 5) "
-        + "|| '-' || LEFT(sc.end_time::text, 5), ', ' ORDER BY sc.id) "
-        + "FROM schedules sc WHERE sc.section_id = s.id), 'TBA') AS schedule, "
-        + "s.current_enrollees, s.capacity "
-        + "FROM sections s "
-        + "JOIN courses c ON c.id = s.course_id "
-        + "LEFT JOIN users u ON u.id = s.professor_id ";
+    private static final String SELECT = "SELECT s.id, s.professor_id, COALESCE(s.section_code, '') AS section_code, c.code, c.title, "
+            + "COALESCE(u.name, 'TBA') AS professor_name, "
+            + "COALESCE((SELECT string_agg(sc.day_of_week || ' ' || LEFT(sc.start_time::text, 5) "
+            + "|| '-' || LEFT(sc.end_time::text, 5), ', ' ORDER BY sc.id) "
+            + "FROM schedules sc WHERE sc.section_id = s.id), 'TBA') AS schedule, "
+            + "s.current_enrollees, s.capacity "
+            + "FROM sections s "
+            + "JOIN courses c ON c.id = s.course_id "
+            + "LEFT JOIN users u ON u.id = s.professor_id ";
 
     public List<Section> findAll() throws SQLException {
         return query(SELECT + "ORDER BY c.code", null);
@@ -32,9 +31,8 @@ public class SectionDAO {
 
     public List<Section> findByProfessor(int professorId) throws SQLException {
         return query(
-            SELECT + "WHERE s.professor_id = ? ORDER BY c.code",
-            professorId
-        );
+                SELECT + "WHERE s.professor_id = ? ORDER BY c.code",
+                professorId);
     }
 
     private List<Section> query(String sql, Integer professorId)
@@ -43,7 +41,7 @@ public class SectionDAO {
         List<Section> list = new ArrayList<>();
 
         try (Connection conn = DBConnection.get();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             if (professorId != null) {
                 stmt.setInt(1, professorId);
@@ -66,22 +64,20 @@ public class SectionDAO {
         }
 
         String placeholders = String.join(
-            ",",
-            java.util.Collections.nCopies(sections.size(), "?")
-        );
+                ",",
+                java.util.Collections.nCopies(sections.size(), "?"));
 
-        String sql =
-            "SELECT section_id, day_of_week, "
-            + "LEFT(start_time::text, 5) AS start_time, "
-            + "LEFT(end_time::text, 5) AS end_time "
-            + "FROM schedules "
-            + "WHERE section_id IN (" + placeholders + ") "
-            + "ORDER BY section_id, day_of_week, start_time";
+        String sql = "SELECT section_id, day_of_week, "
+                + "LEFT(start_time::text, 5) AS start_time, "
+                + "LEFT(end_time::text, 5) AS end_time "
+                + "FROM schedules "
+                + "WHERE section_id IN (" + placeholders + ") "
+                + "ORDER BY section_id, day_of_week, start_time";
 
         Map<Integer, List<SectionSlot>> slotsBySection = new HashMap<>();
 
         try (Connection conn = DBConnection.get();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             for (int i = 0; i < sections.size(); i++) {
                 stmt.setInt(i + 1, sections.get(i).getId());
@@ -97,19 +93,17 @@ public class SectionDAO {
                     slot.setEndTime(rs.getString("end_time"));
 
                     slotsBySection
-                        .computeIfAbsent(sectionId, key -> new ArrayList<>())
-                        .add(slot);
+                            .computeIfAbsent(sectionId, key -> new ArrayList<>())
+                            .add(slot);
                 }
             }
         }
 
         for (Section section : sections) {
             section.setSlots(
-                slotsBySection.getOrDefault(
-                    section.getId(),
-                    new ArrayList<>()
-                )
-            );
+                    slotsBySection.getOrDefault(
+                            section.getId(),
+                            new ArrayList<>()));
         }
     }
 
@@ -118,18 +112,15 @@ public class SectionDAO {
             int professorId,
             int capacity,
             String sectionCode,
-            JSONArray slots
-    ) throws SQLException {
+            JSONArray slots) throws SQLException {
 
-        String insertSection =
-            "INSERT INTO sections "
-            + "(course_id, professor_id, capacity, section_code, current_enrollees) "
-            + "VALUES (?, ?, ?, ?, 0) RETURNING id";
+        String insertSection = "INSERT INTO sections "
+                + "(course_id, professor_id, capacity, section_code, current_enrollees) "
+                + "VALUES (?, ?, ?, ?, 0) RETURNING id";
 
-        String insertSlot =
-            "INSERT INTO schedules "
-            + "(section_id, day_of_week, start_time, end_time) "
-            + "VALUES (?, ?, ?, ?)";
+        String insertSlot = "INSERT INTO schedules "
+                + "(section_id, day_of_week, start_time, end_time) "
+                + "VALUES (?, ?, ?::time, ?::time)";
 
         try (Connection conn = DBConnection.get()) {
             conn.setAutoCommit(false);
@@ -137,8 +128,7 @@ public class SectionDAO {
             try {
                 int sectionId;
 
-                try (PreparedStatement stmt =
-                         conn.prepareStatement(insertSection)) {
+                try (PreparedStatement stmt = conn.prepareStatement(insertSection)) {
 
                     stmt.setInt(1, courseId);
                     stmt.setInt(2, professorId);
@@ -153,8 +143,7 @@ public class SectionDAO {
                     }
                 }
 
-                try (PreparedStatement stmt =
-                         conn.prepareStatement(insertSlot)) {
+                try (PreparedStatement stmt = conn.prepareStatement(insertSlot)) {
 
                     for (int i = 0; i < slots.length(); i++) {
                         JSONObject slot = slots.getJSONObject(i);
@@ -191,28 +180,33 @@ public class SectionDAO {
             int sectionId,
             int professorId,
             int capacity,
-            JSONArray slots
-    ) throws SQLException {
+            JSONArray slots) throws SQLException {
 
-        String updateSection =
-            "UPDATE sections SET professor_id = ?, capacity = ? WHERE id = ?";
+        String updateSection = "UPDATE sections SET professor_id = ?, capacity = ? WHERE id = ?";
 
-        String deleteSlots =
-            "DELETE FROM schedules WHERE section_id = ?";
+        String deleteSlots = "DELETE FROM schedules WHERE section_id = ?";
 
-        String insertSlot =
-            "INSERT INTO schedules "
-            + "(section_id, day_of_week, start_time, end_time) "
-            + "VALUES (?, ?, ?, ?)";
+        String insertSlot = "INSERT INTO schedules "
+                + "(section_id, day_of_week, start_time, end_time) "
+                + "VALUES (?, ?, ?::time, ?::time)";
 
         try (Connection conn = DBConnection.get()) {
             conn.setAutoCommit(false);
 
+            try (PreparedStatement chk = conn.prepareStatement(
+                    "SELECT current_enrollees FROM sections WHERE id = ?")) {
+                chk.setInt(1, sectionId);
+                try (ResultSet rs = chk.executeQuery()) {
+                    if (rs.next() && capacity < rs.getInt(1)) {
+                        throw new SQLException("Capacity cannot be lower than current enrollees");
+                    }
+                }
+            }
+
             try {
                 int updated;
 
-                try (PreparedStatement stmt =
-                         conn.prepareStatement(updateSection)) {
+                try (PreparedStatement stmt = conn.prepareStatement(updateSection)) {
 
                     stmt.setInt(1, professorId);
                     stmt.setInt(2, capacity);
@@ -225,15 +219,13 @@ public class SectionDAO {
                     return false;
                 }
 
-                try (PreparedStatement stmt =
-                         conn.prepareStatement(deleteSlots)) {
+                try (PreparedStatement stmt = conn.prepareStatement(deleteSlots)) {
 
                     stmt.setInt(1, sectionId);
                     stmt.executeUpdate();
                 }
 
-                try (PreparedStatement stmt =
-                         conn.prepareStatement(insertSlot)) {
+                try (PreparedStatement stmt = conn.prepareStatement(insertSlot)) {
 
                     for (int i = 0; i < slots.length(); i++) {
                         JSONObject slot = slots.getJSONObject(i);
@@ -271,8 +263,8 @@ public class SectionDAO {
         JSONArray conflicts = new JSONArray();
 
         try (Connection conn = DBConnection.get();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
 
             ResultSetMetaData meta = rs.getMetaData();
             int columnCount = meta.getColumnCount();
@@ -284,9 +276,8 @@ public class SectionDAO {
                     Object value = rs.getObject(i);
 
                     conflict.put(
-                        meta.getColumnLabel(i),
-                        value == null ? JSONObject.NULL : value
-                    );
+                            meta.getColumnLabel(i),
+                            value == null ? JSONObject.NULL : value);
                 }
 
                 conflicts.put(conflict);
@@ -300,6 +291,7 @@ public class SectionDAO {
         Section s = new Section();
 
         s.setId(rs.getInt("id"));
+        s.setProfessorId(rs.getInt("professor_id"));
         s.setSectionCode(rs.getString("section_code"));
         s.setCourseCode(rs.getString("code"));
         s.setCourseTitle(rs.getString("title"));

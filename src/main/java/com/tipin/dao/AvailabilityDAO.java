@@ -33,8 +33,9 @@ public class AvailabilityDAO {
     // Every professor's slots (coordinator view)
     public List<ProfAvailability> findAll() throws SQLException {
         String sql = "SELECT a.id, a.professor_id, u.name AS professor_name, a.day_of_week, a.start_time, a.end_time "
-                + "FROM professor_availability a JOIN users u ON u.id = a.professor_id "
-                + "ORDER BY u.name, a.id";
+        + "FROM professor_availability a JOIN users u ON u.id = a.professor_id "
+        + "WHERE u.role = 'professor' "
+        + "ORDER BY u.name, a.id";
         List<ProfAvailability> list = new ArrayList<>();
         try (Connection conn = DBConnection.get();
                 PreparedStatement stmt = conn.prepareStatement(sql);
