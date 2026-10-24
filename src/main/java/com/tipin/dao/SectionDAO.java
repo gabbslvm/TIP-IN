@@ -4,6 +4,9 @@ import com.tipin.model.Section;
 import com.tipin.model.SectionSlot;
 import com.tipin.util.DBConnection;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,7 +57,6 @@ public class SectionDAO {
         }
 
         loadSlots(list);
-
         return list;
     }
 
@@ -109,6 +111,189 @@ public class SectionDAO {
                 )
             );
         }
+    }
+
+    public int createSection(
+            int courseId,
+            int professorId,
+            int capacity,
+            String sectionCode,
+            JSONArray slots
+    ) throws SQLException {
+
+        String insertSection =
+            "INSERT INTO sections "
+            + "(course_id, professor_id, capacity, section_code, current_enrollees) "
+            + "VALUES (?, ?, ?, ?, 0) RETURNING id";
+
+        String insertSlot =
+            "INSERT INTO schedules "
+            + "(section_id, day_of_week, start_time, end_time) "
+            + "VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = DBConnection.get()) {
+            conn.setAutoCommit(false);
+
+            try {
+                int sectionId;
+
+                try (PreparedStatement stmt =
+                         conn.prepareStatement(insertSection)) {
+
+                    stmt.setInt(1, courseId);
+                    stmt.setInt(2, professorId);
+                    stmt.setInt(3, capacity);
+                    stmt.setString(4, sectionCode);
+
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) {
+                            throw new SQLException("Failed to create section");
+                        }
+                        sectionId = rs.getInt("id");
+                    }
+                }
+
+                try (PreparedStatement stmt =
+                         conn.prepareStatement(insertSlot)) {
+
+                    for (int i = 0; i < slots.length(); i++) {
+                        JSONObject slot = slots.getJSONObject(i);
+
+                        stmt.setInt(1, sectionId);
+                        stmt.setString(2, slot.getString("day_of_week"));
+                        stmt.setString(3, slot.getString("start_time"));
+                        stmt.setString(4, slot.getString("end_time"));
+                        stmt.addBatch();
+                    }
+
+                    stmt.executeBatch();
+                }
+
+                conn.commit();
+                return sectionId;
+
+            } catch (Exception e) {
+                conn.rollback();
+
+                if (e instanceof SQLException) {
+                    throw (SQLException) e;
+                }
+
+                throw new SQLException("Failed to create section", e);
+
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        }
+    }
+
+    public boolean updateSection(
+            int sectionId,
+            int professorId,
+            int capacity,
+            JSONArray slots
+    ) throws SQLException {
+
+        String updateSection =
+            "UPDATE sections SET professor_id = ?, capacity = ? WHERE id = ?";
+
+        String deleteSlots =
+            "DELETE FROM schedules WHERE section_id = ?";
+
+        String insertSlot =
+            "INSERT INTO schedules "
+            + "(section_id, day_of_week, start_time, end_time) "
+            + "VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = DBConnection.get()) {
+            conn.setAutoCommit(false);
+
+            try {
+                int updated;
+
+                try (PreparedStatement stmt =
+                         conn.prepareStatement(updateSection)) {
+
+                    stmt.setInt(1, professorId);
+                    stmt.setInt(2, capacity);
+                    stmt.setInt(3, sectionId);
+                    updated = stmt.executeUpdate();
+                }
+
+                if (updated == 0) {
+                    conn.rollback();
+                    return false;
+                }
+
+                try (PreparedStatement stmt =
+                         conn.prepareStatement(deleteSlots)) {
+
+                    stmt.setInt(1, sectionId);
+                    stmt.executeUpdate();
+                }
+
+                try (PreparedStatement stmt =
+                         conn.prepareStatement(insertSlot)) {
+
+                    for (int i = 0; i < slots.length(); i++) {
+                        JSONObject slot = slots.getJSONObject(i);
+
+                        stmt.setInt(1, sectionId);
+                        stmt.setString(2, slot.getString("day_of_week"));
+                        stmt.setString(3, slot.getString("start_time"));
+                        stmt.setString(4, slot.getString("end_time"));
+                        stmt.addBatch();
+                    }
+
+                    stmt.executeBatch();
+                }
+
+                conn.commit();
+                return true;
+
+            } catch (Exception e) {
+                conn.rollback();
+
+                if (e instanceof SQLException) {
+                    throw (SQLException) e;
+                }
+
+                throw new SQLException("Failed to update section", e);
+
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        }
+    }
+
+    public JSONArray findScheduleConflicts() throws SQLException {
+        String sql = "SELECT * FROM schedule_conflicts";
+        JSONArray conflicts = new JSONArray();
+
+        try (Connection conn = DBConnection.get();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            ResultSetMetaData meta = rs.getMetaData();
+            int columnCount = meta.getColumnCount();
+
+            while (rs.next()) {
+                JSONObject conflict = new JSONObject();
+
+                for (int i = 1; i <= columnCount; i++) {
+                    Object value = rs.getObject(i);
+
+                    conflict.put(
+                        meta.getColumnLabel(i),
+                        value == null ? JSONObject.NULL : value
+                    );
+                }
+
+                conflicts.put(conflict);
+            }
+        }
+
+        return conflicts;
     }
 
     private Section map(ResultSet rs) throws SQLException {
