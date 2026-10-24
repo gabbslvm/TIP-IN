@@ -1,10 +1,12 @@
 package com.tipin.model;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Section {
     private int id, currentEnrollees, capacity;
     private String courseCode, courseTitle, professorName, schedule, sectionCode;
+    private List<SectionSlot> slots = new ArrayList<>();
 
     public int getId() {
         return id;
@@ -68,5 +70,13 @@ public class Section {
 
     public void setSectionCode(String sectionCode) {
         this.sectionCode = sectionCode;
+    }
+
+    public List<SectionSlot> getSlots() {
+        return slots;
+    }
+
+    public void setSlots(List<SectionSlot> slots) {
+        this.slots = slots;
     }
 }
