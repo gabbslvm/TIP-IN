@@ -2,7 +2,7 @@ package com.tipin.model;
 
 public class ProfAvailability {
     private int id, professorId;
-    private String dayOfWeek, startTime, endTime;
+    private String dayOfWeek, startTime, endTime, professorName;
 
     public int getId() {
         return id;
@@ -42,5 +42,13 @@ public class ProfAvailability {
 
     public void setEndTime(String endTime) {
         this.endTime = endTime;
+    }
+
+    public String getProfessorName() {
+        return professorName;
+    }
+
+    public void setProfessorName(String professorName) {
+        this.professorName = professorName;
     }
 }

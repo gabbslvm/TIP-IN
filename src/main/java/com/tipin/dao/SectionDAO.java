@@ -9,7 +9,7 @@ import java.util.List;
 public class SectionDAO {
     // Shared SELECT: joins course info and professor name
     private static final String SELECT =
-        "SELECT s.id, c.code, c.title, "
+        "SELECT s.id, COALESCE(s.section_code, '') AS section_code, c.code, c.title, "
         + "COALESCE(u.name, 'TBA') AS professor_name, "
         + "COALESCE((SELECT string_agg(sc.day_of_week || ' ' || LEFT(sc.start_time::text, 5) "
         + "      || '-' || LEFT(sc.end_time::text, 5), ', ' ORDER BY sc.id) "
@@ -48,6 +48,7 @@ public class SectionDAO {
     private Section map(ResultSet rs) throws SQLException {
         Section s = new Section();
         s.setId(rs.getInt("id"));
+        s.setSectionCode(rs.getString("section_code"));
         s.setCourseCode(rs.getString("code"));
         s.setCourseTitle(rs.getString("title"));
         s.setProfessorName(rs.getString("professor_name"));

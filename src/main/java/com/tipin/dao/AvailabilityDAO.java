@@ -30,6 +30,29 @@ public class AvailabilityDAO {
         return list;
     }
 
+    // Every professor's slots (coordinator view)
+    public List<ProfAvailability> findAll() throws SQLException {
+        String sql = "SELECT a.id, a.professor_id, u.name AS professor_name, a.day_of_week, a.start_time, a.end_time "
+                + "FROM professor_availability a JOIN users u ON u.id = a.professor_id "
+                + "ORDER BY u.name, a.id";
+        List<ProfAvailability> list = new ArrayList<>();
+        try (Connection conn = DBConnection.get();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                ProfAvailability a = new ProfAvailability();
+                a.setId(rs.getInt("id"));
+                a.setProfessorId(rs.getInt("professor_id"));
+                a.setProfessorName(rs.getString("professor_name"));
+                a.setDayOfWeek(rs.getString("day_of_week"));
+                a.setStartTime(rs.getString("start_time"));
+                a.setEndTime(rs.getString("end_time"));
+                list.add(a);
+            }
+        }
+        return list;
+    }
+
     // Delete old slots, insert new ones. One transaction: all or nothing.
     public void replaceAll(int professorId, List<ProfAvailability> slots) throws SQLException {
         try (Connection conn = DBConnection.get()) {

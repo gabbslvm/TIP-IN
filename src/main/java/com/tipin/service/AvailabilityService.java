@@ -12,6 +12,10 @@ public class AvailabilityService {
         return new AvailabilityDAO().findByProfessor(professorId);
     }
 
+    public static List<ProfAvailability> getAll() throws Exception {
+        return new AvailabilityDAO().findAll();
+    }
+
     public static void save(int professorId, List<ProfAvailability> slots) throws Exception {
         for (ProfAvailability s : slots) {
             if (!DAYS.contains(s.getDayOfWeek())) throw new Exception("Invalid day");

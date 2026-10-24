@@ -2,7 +2,7 @@ package com.tipin.model;
 
 public class Section {
     private int id, currentEnrollees, capacity;
-    private String courseCode, courseTitle, professorName, schedule;
+    private String courseCode, courseTitle, professorName, schedule, sectionCode;
 
     public int getId() {
         return id;
@@ -58,5 +58,13 @@ public class Section {
 
     public void setSchedule(String schedule) {
         this.schedule = schedule;
+    }
+
+    public String getSectionCode() {
+        return sectionCode;
+    }
+
+    public void setSectionCode(String sectionCode) {
+        this.sectionCode = sectionCode;
     }
 }

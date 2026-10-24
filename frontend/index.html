@@ -3,14 +3,18 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#36454F">
     <title>TIP-IN Enrollment Support System</title>
     <link rel="icon" type="image/png" href="img/tip_in-logo.png">
     <link rel="stylesheet" href="styles.css">
-    <script src="web.js" defer></script>
-    <script src="helpers.js" defer></script>
-    <script src="student.js" defer></script>
-    <script src="professor.js" defer></script>
+
+    <!-- load order matters: api -> session -> app -> student -> coordinator -->
+    <script src="js/api.js" defer></script>
+    <script src="js/session.js" defer></script>
+    <script src="js/app.js" defer></script>
+    <script src="js/student.js" defer></script>
+    <script src="js/coordinator.js" defer></script>
 </head>
 
 <body class="loggedOut">
@@ -36,13 +40,13 @@
                             <i>→</i>
                         </button>
 
-                        <button class="portalItem" onclick="selectPortal('professor')">
-                            <span class="portalText"><b>Professor</b><small>Set your teaching availability</small></span>
+                        <button class="portalItem" onclick="selectPortal('faculty')">
+                            <span class="portalText"><b>Faculty</b><small>Set your teaching availability and view your schedule</small></span>
                             <i>→</i>
                         </button>
 
-                        <button class="portalItem" onclick="selectPortal('coordinator')">
-                            <span class="portalText"><b>Program Coordinator</b><small>Review petitions and section recommendations</small></span>
+                        <button class="portalItem" onclick="selectPortal('admin')">
+                            <span class="portalText"><b>Admin</b><small>Program coordination: review petitions and section recommendations</small></span>
                             <i>→</i>
                         </button>
                     </div>
@@ -108,37 +112,20 @@
         <div class="loginFooter">Technological Institute of the Philippines · Quezon City</div>
     </div>
 
-    <!-- SIDEBAR -->
-    <aside class="side">
-        <div class="logo">
-            <div>
-                <b>T.I.P - IN</b>
-                <small>Integrated Enrollment<br>Support System</small>
+    <!-- HAMBURGER DRAWER (all screen sizes) -->
+    <aside class="side" id="side" aria-label="Main menu" aria-hidden="true">
+        <div class="sideHead">
+            <div class="logo">
+                <div>
+                    <b>T.I.P - IN</b>
+                    <small>Integrated Enrollment<br>Support System</small>
+                </div>
             </div>
+            <button class="sideClose" aria-label="Close menu" onclick="closeSidebar()">&times;</button>
         </div>
 
-        <div class="nav">
-            <button class="active" data-roles="student professor coordinator"
-                onclick="showPage('dashboard', this)">Dashboard</button>
-
-            <!-- Student -->
-            <button data-roles="student" onclick="showPage('studentPetitions', this)">Petitions</button>
-            <button data-roles="student" onclick="showPage('studentDemand', this)">Demand</button>
-            <button data-roles="student" onclick="showPage('studentSections', this)">Sections</button>
-
-            <!-- Professor -->
-            <button data-roles="professor" onclick="showPage('profSchedule', this)">My Schedule</button>
-            <button data-roles="professor" onclick="showPage('profAvailability', this)">Availability</button>
-
-            <!-- Coordinator -->
-            <button data-roles="coordinator" onclick="showPage('petitions', this)">Petition Management</button>
-            <button data-roles="coordinator" onclick="showPage('recommendations', this)">Recommendations</button>
-
-            <button id="navAnnouncements" data-roles="student professor coordinator"
-                onclick="showPage('announcements', this)">Announcements</button>
-            <button data-roles="student professor coordinator" onclick="showPage('settings', this)">Settings</button>
-            <button onclick="openLogoutModal()">Logout</button>
-        </div>
+        <!-- built by buildNav() from the PAGES registry -->
+        <div class="nav" id="nav"></div>
 
         <div class="bottom">
             TECHNOLOGICAL INSTITUTE<br>
@@ -147,326 +134,39 @@
         </div>
     </aside>
 
-    <!-- DARK OVERLAY (mobile sidebar) -->
     <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
     <!-- MAIN CONTENT -->
     <main class="main">
-
         <div class="top">
             <div class="topLeft">
-                <button class="burger" aria-label="Menu" onclick="toggleSidebar()">☰</button>
+                <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="side"
+                    onclick="toggleSidebar()"><i></i><i></i><i></i></button>
                 <div class="title">
-                    <h2 id="pageTitle">Good day, </h2>
-                    <p id="pageSub">Enrollment Support System • T.I.P - IN</p>
+                    <h2 id="pageTitle"></h2>
+                    <p id="pageSub"></p>
                 </div>
             </div>
 
             <div class="user">
-                <button class="notify" aria-label="Notifications" onclick="goToAnnouncements()"><span
-                        class="bell"></span><span class="notifyDot"></span></button>
-                <span class="roleTag" id="roleTag">Student</span>
-                <div class="avatar">
+                <button class="notify" id="bell" aria-label="Notifications" onclick="onBellClick()" hidden>
+                    <span class="bell"></span><span class="notifyDot" id="bellDot"></span>
+                </button>
+                <span class="roleTag" id="roleTag"></span>
+                <div class="profile">
+                    <span class="userName" id="userName"></span>
+                    <div class="avatar">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="8" r="4" fill="#9a9a9a" />
                         <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7" fill="#9a9a9a" />
                     </svg>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- DASHBOARD -->
-        <section id="dashboard" class="page active">
-            <div class="cards" id="dashboardCards"></div>
-
-            <div class="grid">
-                <div>
-                    <div class="panel quick">
-                        <h3 style="margin-bottom:8px">Quick Actions</h3>
-                        <button data-roles="student" onclick="showPage('studentPetitions')">Submit & Track My
-                            Petitions</button>
-                        <button data-roles="student" onclick="showPage('studentDemand')">Indicate Course Interest</button>
-                        <button data-roles="professor" onclick="showPage('profAvailability')">Update My
-                            Availability</button>
-                        <button data-roles="coordinator" onclick="showPage('recommendations')">View Section
-                            Recommendations</button>
-                        <button data-roles="coordinator" onclick="showPage('petitions')">Review Petitions</button>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="panel">
-                        <div class="panelHead">
-                            <h3>Announcements</h3>
-                            <span class="link" onclick="showPage('announcements')">View All</span>
-                        </div>
-
-                        <div id="dashboardAnnouncements">
-                            <div class="announce">
-                                <b>Enrollment for Term 1</b>
-                                <span class="muted">Regular enrollment will start on May 20, 2026.</span>
-                            </div>
-
-                            <div class="announce">
-                                <b>Course Pre-enlistment Guide</b>
-                                <span class="muted">Please check the enrollment guidelines.</span>
-                            </div>
-
-                            <div class="announce">
-                                <b>Section Capacity Review</b>
-                                <span class="muted">Review sections with high demand.</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- STUDENT: PETITIONS -->
-        <section id="studentPetitions" class="page" data-roles="student">
-            <div class="panel">
-                <div class="panelHead">
-                    <h3>Request a New Section</h3>
-                </div>
-
-                <label>Reason for Request</label>
-                <select id="petReason">
-                    <option>Course is Fully Enrolled</option>
-                    <option>Schedule Conflict with Existing Sections</option>
-                    <option>High Student Demand</option>
-                    <option>Other</option>
-                </select>
-
-                <label>Course</label>
-                <select id="petCourse"></select>
-
-                <label>Desired Section</label>
-                <input id="petSection" placeholder="e.g. IT21S6">
-
-                <label>Details</label>
-                <textarea id="petDetails" rows="3" placeholder="Explain why a new section should be opened..."></textarea>
-
-                <button class="btn" style="margin-top:10px" onclick="submitStudentPetition()">Submit Petition</button>
-            </div>
-
-            <div class="panel">
-                <div class="panelHead">
-                    <h3>My Petitions</h3>
-                </div>
-                <div class="tableWrap">
-                    <table id="petTable">
-                        <tr>
-                            <th>Course</th>
-                            <th>Section</th>
-                            <th>Reason</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- STUDENT: DEMAND -->
-        <section id="studentDemand" class="page" data-roles="student">
-            <div class="panel">
-                <div class="panelHead">
-                    <h3>Course Demand</h3>
-                </div>
-                <p class="muted" style="margin-bottom:10px">Click "Indicate Interest" on the courses you want to take.
-                    This helps the coordinator see which courses are in high demand.</p>
-                <div class="tableWrap">
-                    <table id="demandTable">
-                        <tr>
-                            <th>Code</th>
-                            <th>Title</th>
-                            <th>Units</th>
-                            <th></th>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- STUDENT: SECTIONS -->
-        <section id="studentSections" class="page" data-roles="student">
-            <div class="panel">
-                <div class="panelHead">
-                    <h3>Sections</h3>
-                </div>
-                <div class="tableWrap">
-                    <table id="sectionTable">
-                        <tr>
-                            <th>Course</th>
-                            <th>Professor</th>
-                            <th>Schedule</th>
-                            <th>Enrolled</th>
-                            <th>Status</th>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- PROFESSOR: MY SCHEDULE -->
-        <section id="profSchedule" class="page" data-roles="professor">
-            <div class="panel">
-                <div class="panelHead">
-                    <h3>My Schedule</h3>
-                </div>
-                <p class="muted" style="margin-bottom:10px">The sections assigned to you. To set when you are free to
-                    teach, use the Availability page.</p>
-                <div class="tableWrap">
-                    <table id="scheduleTable">
-                        <tr>
-                            <th>Course</th>
-                            <th>Schedule</th>
-                            <th>Enrolled</th>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- PROFESSOR: AVAILABILITY -->
-        <section id="profAvailability" class="page" data-roles="professor">
-            <div class="panel">
-                <div class="panelHead">
-                    <h3>My Availability</h3>
-                    <button class="btn" onclick="addAvailabilityRow()">+ Add Time Slot</button>
-                </div>
-                <div class="tableWrap">
-                    <table id="availabilityTable">
-                        <tr>
-                            <th>Day</th>
-                            <th>Start</th>
-                            <th>End</th>
-                            <th></th>
-                        </tr>
-                    </table>
-                </div>
-                <button class="btn" style="margin-top:14px" onclick="saveAvailability()">Save Availability</button>
-            </div>
-        </section>
-
-        <!-- COORDINATOR: PETITIONS -->
-        <section id="petitions" class="page" data-roles="coordinator">
-            <div class="cards">
-                <div class="card">
-                    <div class="label">TOTAL PETITIONS</div>
-                    <div class="number" id="totalPetitionsCount">0</div>
-                </div>
-                <div class="card">
-                    <div class="label">PENDING</div>
-                    <div class="number" id="pendingPetitionsCount">0</div>
-                </div>
-                <div class="card">
-                    <div class="label">APPROVED</div>
-                    <div class="number" id="approvedPetitionsCount">0</div>
-                </div>
-                <div class="card">
-                    <div class="label">DENIED</div>
-                    <div class="number" id="deniedPetitionsCount">0</div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panelHead">
-                    <h3>Student Petitions</h3>
-                </div>
-
-                <div class="toolbar">
-                    <input id="petitionSearch" placeholder="Search petition ID or course..."
-                        onkeyup="filterTable('petitionTable', this.value)">
-                    <select>
-                        <option>All Reasons</option>
-                        <option>Course is Fully Enrolled</option>
-                        <option>Schedule Conflict with Existing Sections</option>
-                        <option>High Student Demand</option>
-                        <option>Other</option>
-                    </select>
-                </div>
-
-                <div class="tableWrap">
-                    <table id="petitionTable">
-                        <tr>
-                            <th>Petition ID</th>
-                            <th>Reason</th>
-                            <th>Course / Section</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- COORDINATOR: RECOMMENDATIONS -->
-        <section id="recommendations" class="page" data-roles="coordinator">
-            <div class="panel">
-                <div class="panelHead">
-                    <h3>Section Recommendations</h3>
-                </div>
-                <div class="tableWrap">
-                    <table id="recTable">
-                        <tr>
-                            <th>Course</th>
-                            <th>Demand</th>
-                            <th>Petitions</th>
-                            <th>Capacity</th>
-                            <th>Suggestion</th>
-                            <th>Status</th>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- ANNOUNCEMENTS -->
-        <section id="announcements" class="page">
-            <div class="panel">
-                <div class="panelHead">
-                    <h3>Announcements</h3>
-                    <button class="btn" data-roles="coordinator"
-                        onclick="alert('New announcement form opened (demo).')">
-                        + New Announcement
-                    </button>
-                </div>
-
-                <div class="announce">
-                    <b>Enrollment for Term 1</b>
-                    <span class="muted">Regular enrollment will start on May 20, 2026.</span>
-                </div>
-
-                <div class="announce">
-                    <b>Course Pre-enlistment Guide</b>
-                    <span class="muted">Please check the pre-enlistment guidelines before submitting.</span>
-                </div>
-
-                <div class="announce">
-                    <b>Class Suspension</b>
-                    <span class="muted">Classes are suspended on May 23, 2026.</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- SETTINGS -->
-        <section id="settings" class="page">
-            <div class="panel">
-                <h3>System Settings</h3>
-                <p class="muted">Demo settings for the enrollment support system.</p>
-
-                <label>School Year</label>
-                <select style="display:block;margin:8px 0 15px;padding:8px">
-                    <option>2026–2027</option>
-                </select>
-
-                <button class="btn" onclick="alert('Settings saved (demo).')">
-                    Save Changes
-                </button>
-            </div>
-        </section>
-
+        <!-- every page is rendered here by showPage() -->
+        <div id="view" class="view" aria-live="polite"></div>
     </main>
 
     <!-- LOGOUT CONFIRMATION -->

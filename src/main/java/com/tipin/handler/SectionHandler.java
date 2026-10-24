@@ -34,6 +34,7 @@ public class SectionHandler implements HttpHandler {
                 for (Section s : list) {
                     JSONObject o = new JSONObject();
                     o.put("id", s.getId());
+                    o.put("section_code", s.getSectionCode());
                     o.put("course_code", s.getCourseCode());
                     o.put("course_title", s.getCourseTitle());
                     o.put("professor_name", s.getProfessorName());

@@ -20,7 +20,21 @@ public class AvailabilityHandler implements HttpHandler {
         String method = ex.getRequestMethod();
 
         try {
-            if (method.equals("GET") && path.startsWith("/api/availability/")) {
+            if (method.equals("GET") && path.equals("/api/availability")) {
+                // all professors' slots, for the coordinator dashboard
+                JSONArray arr = new JSONArray();
+                for (ProfAvailability a : AvailabilityService.getAll()) {
+                    JSONObject o = new JSONObject();
+                    o.put("professor_id", a.getProfessorId());
+                    o.put("professor_name", a.getProfessorName());
+                    o.put("day_of_week", a.getDayOfWeek());
+                    o.put("start_time", a.getStartTime());
+                    o.put("end_time", a.getEndTime());
+                    arr.put(o);
+                }
+                HandlerUtil.sendResponse(ex, 200, arr.toString());
+
+            } else if (method.equals("GET") && path.startsWith("/api/availability/")) {
                 int professorId = Integer.parseInt(HandlerUtil.lastSegment(ex));
                 JSONArray arr = new JSONArray();
                 for (ProfAvailability a : AvailabilityService.get(professorId)) {
