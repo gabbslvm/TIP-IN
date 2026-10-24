@@ -43,20 +43,15 @@ function petitionCounts(list) {
 // 1. DASHBOARD
 // =====================================================
 async function renderCoordDashboard() {
-    const faculty = isFaculty();
     const results = await Promise.all([
         api("/api/petitions"),
         api("/api/recommendations"),
         api("/api/announcements").catch(function () { return []; }),
-        faculty ? api("/api/dashboard?role=PROFESSOR&user_id=" + currentUser.id).catch(function () { return null; }) : null,
-        // faculty: my own slots. admin: every professor's slots (error text kept so the panel can explain)
-        faculty
-            ? api("/api/availability/" + currentUser.id).then(function (list) { return { ok: true, list: list }; }).catch(function (e) { return { ok: false, error: e.message }; })
-            : api("/api/availability").then(function (list) { return { ok: true, list: list }; }).catch(function (e) { return { ok: false, error: e.message }; }),
+        api("/api/availability").then(function (list) { return { ok: true, list: list }; }).catch(function (e) { return { ok: false, error: e.message }; }),
     ]);
     const c = petitionCounts(results[0]);
     const newRecs = results[1].filter(function (r) { return r.status === "NEW"; }).length;
-    const avail = results[4];
+    const avail = results[3];
     updateBell(results[1]);
 
     const cards = [
@@ -66,10 +61,7 @@ async function renderCoordDashboard() {
         { label: "Rejected", value: c.rejected },
         { label: "New Recommendations", value: newRecs },
     ];
-    if (faculty) {
-        cards.push({ label: "My Sections", value: results[3] ? results[3].my_sections || 0 : 0 });
-        cards.push({ label: "Vacant Time Slots", value: avail.ok ? avail.list.length : 0 });
-    } else if (avail.ok) {
+    if (avail.ok) {
         const ids = {};
         avail.list.forEach(function (s) { ids[s.professor_id] = true; });
         cards.push({ label: "Professors With Vacant Time", value: Object.keys(ids).length });
@@ -77,16 +69,36 @@ async function renderCoordDashboard() {
 
     const quick = '<div class="panel quick"><h3>Quick Actions</h3>' +
         '<button data-act="go" data-page="petitions">Review Petitions</button>' +
-        '<button data-act="go" data-page="recommendations">View Section Recommendations</button>' +
-        (faculty ? '<button data-act="go" data-page="availability">Set My Preferred Vacant Time</button>' : "") +
-        "</div>";
+        '<button data-act="go" data-page="recommendations">View Section Recommendations</button></div>';
     const news = '<div class="panel"><div class="panelHead"><h3>Announcements</h3>' +
         '<button class="link" data-act="go" data-page="announcements">View All</button></div>' +
         renderAnnouncementList(results[2].slice(0, 3)) + "</div>";
 
-    return renderCards(cards) +
-        (faculty ? myVacantPanel(avail) : profAvailPanel(avail)) +
-        '<div class="grid">' + quick + news + "</div>";
+    return renderCards(cards) + profAvailPanel(avail) + '<div class="grid">' + quick + news + "</div>";
+}
+
+async function renderFacultyDashboard() {
+    const results = await Promise.all([
+        api("/api/dashboard?role=PROFESSOR&user_id=" + currentUser.id).catch(function () { return null; }),
+        api("/api/availability/" + currentUser.id).then(function (list) { return { ok: true, list: list }; }).catch(function (e) { return { ok: false, error: e.message }; }),
+        api("/api/announcements").catch(function () { return []; }),
+    ]);
+    const stats = results[0];
+    const avail = results[1];
+
+    const cards = [
+        { label: "My Sections", value: stats ? stats.my_sections || 0 : 0 },
+        { label: "Vacant Time Slots", value: avail.ok ? avail.list.length : 0 },
+    ];
+
+    const quick = '<div class="panel quick"><h3>Quick Actions</h3>' +
+        '<button data-act="go" data-page="schedule">View My Schedule</button>' +
+        '<button data-act="go" data-page="availability">Set My Preferred Vacant Time</button></div>';
+    const news = '<div class="panel"><div class="panelHead"><h3>Announcements</h3>' +
+        '<button class="link" data-act="go" data-page="announcements">View All</button></div>' +
+        renderAnnouncementList(results[2].slice(0, 3)) + "</div>";
+
+    return renderCards(cards) + myVacantPanel(avail) + '<div class="grid">' + quick + news + "</div>";
 }
 
 // ---- faculty dashboard: my preferred vacant time (read-only week view)
@@ -469,4 +481,4 @@ ACTIONS.saveAvail = async function (button) {
 };
 
 // the availability page needs its empty-state check right after the HTML is drawn
-PAGES.COORDINATION.find(function (p) { return p.id === "availability"; }).mount = syncAvailEmpty;
+PAGES.FACULTY.find(function (p) { return p.id === "availability"; }).mount = syncAvailEmpty;

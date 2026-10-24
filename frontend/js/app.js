@@ -13,14 +13,12 @@
 const PAGE_KEY = "tipin.page";
 
 // Portal button -> app role. "api" is the role name the backend expects.
-// Faculty and Admin both land in the COORDINATION role.
 const PORTALS = {
     student: { label: "Student", role: "STUDENT", api: "student" },
-    faculty: { label: "Faculty", role: "COORDINATION", api: "professor" },
-    admin: { label: "Admin", role: "COORDINATION", api: "coordinator" },
+    faculty: { label: "Faculty", role: "FACULTY", api: "professor" },
+    coordinator: { label: "Program Coordinator", role: "COORDINATOR", api: "coordinator" },
 };
-PORTALS.professor = PORTALS.faculty;     // old names still work
-PORTALS.coordinator = PORTALS.admin;
+PORTALS.professor = PORTALS.faculty;
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -76,12 +74,17 @@ const PAGES = {
         { id: "announcements", label: "Announcements", icon: "megaphone", title: "Announcements", sub: "The latest news from the program.", render: () => renderAnnouncements() },
         { id: "settings", label: "Settings", icon: "gear", title: "Settings", sub: "Your account details.", render: () => renderSettings() },
     ],
-    COORDINATION: [
+    FACULTY: [
+        { id: "dashboard", label: "Dashboard", icon: "home", title: greeting, sub: "Your teaching overview.", render: () => renderFacultyDashboard() },
+        { id: "schedule", label: "My Schedule", icon: "calendar", title: "My Schedule", sub: "The sections you are teaching.", render: () => renderFacultySchedule() },
+        { id: "availability", label: "Preferred Vacant Time", icon: "clock", title: "Preferred Vacant Time", sub: "Tell the coordinator when you are free to teach.", render: () => renderFacultyAvailability() },
+        { id: "announcements", label: "Announcements", icon: "megaphone", title: "Announcements", sub: "The latest news from the program.", render: () => renderAnnouncements() },
+        { id: "settings", label: "Settings", icon: "gear", title: "Settings", sub: "Your account details.", render: () => renderSettings() },
+    ],
+    COORDINATOR: [
         { id: "dashboard", label: "Dashboard", icon: "home", title: greeting, sub: "Enrollment overview.", render: () => renderCoordDashboard() },
         { id: "petitions", label: "Petition Management", icon: "file", title: "Petition Management", sub: "Review petitions submitted by students.", render: () => renderCoordPetitions() },
         { id: "recommendations", label: "Recommendations", icon: "star", title: "Section Recommendations", sub: "Review courses flagged for high demand.", render: () => renderRecommendations() },
-        { id: "schedule", label: "My Schedule", icon: "calendar", title: "My Schedule", sub: "The sections you are teaching.", render: () => renderFacultySchedule(), when: isFaculty },
-        { id: "availability", label: "Preferred Vacant Time", icon: "clock", title: "Preferred Vacant Time", sub: "Tell the coordinator when you are free to teach.", render: () => renderFacultyAvailability(), when: isFaculty },
         { id: "announcements", label: "Announcements", icon: "megaphone", title: "Announcements", sub: "The latest news from the program.", render: () => renderAnnouncements() },
         { id: "settings", label: "Settings", icon: "gear", title: "Settings", sub: "Your account details.", render: () => renderSettings() },
     ],
@@ -122,14 +125,15 @@ function userRoleLabel(user) {
     if (user.account === "student") return "Student";
     if (user.account === "professor") return "Faculty";
     if (user.account === "coordinator") return "Program Coordinator";
-    return user.role === "COORDINATION" ? "Faculty / Admin" : "Student";
+    return user.role === "COORDINATOR" ? "Program Coordinator" : user.role === "FACULTY" ? "Faculty" : "Student";
 }
 
 // Account role from the database -> app role (null = unknown role)
 function toAppRole(account) {
     const r = String(account || "").toLowerCase();
     if (r === "student") return "STUDENT";
-    if (["professor", "faculty", "coordinator", "admin", "coordination"].indexOf(r) !== -1) return "COORDINATION";
+    if (r === "professor" || r === "faculty") return "FACULTY";
+    if (r === "coordinator") return "COORDINATOR";
     return null;
 }
 
@@ -554,7 +558,7 @@ function setupBell() {
     bell.hidden = false;
     $("bellDot").classList.remove("show");
     bell.setAttribute("aria-label", "Notifications");
-    if (currentUser.role === "COORDINATION") refreshBell();
+    if (currentUser.role === "COORDINATOR") refreshBell();
 }
 
 async function refreshBell() {
@@ -566,7 +570,7 @@ async function refreshBell() {
 // Pass the latest recommendations list; the dot shows only for NEW items
 function updateBell(list) {
     const dot = $("bellDot");
-    if (!currentUser || currentUser.role !== "COORDINATION") {
+    if (!currentUser || currentUser.role !== "COORDINATOR") {
         dot.classList.remove("show");
         return;
     }
@@ -576,7 +580,7 @@ function updateBell(list) {
 }
 
 function onBellClick() {
-    showPage(currentUser && currentUser.role === "COORDINATION" ? "recommendations" : "announcements");
+    showPage(currentUser && currentUser.role === "COORDINATOR" ? "recommendations" : "announcements");
 }
 
 // =====================================================
@@ -625,7 +629,7 @@ async function doLogin() {
     try {
         const account = await api("/api/auth/login", "POST", { email: email, password: password, role: portal.api });
 
-        // the portal must match the account: Faculty/Admin -> COORDINATION, Student -> STUDENT
+        // the portal must match the account: Faculty -> FACULTY, Program Coordinator -> COORDINATOR, Student -> STUDENT
         const role = toAppRole(account.role);
         if (role !== portal.role) {
             throw new Error("This is not a " + portal.label + " account. Please use the correct portal.");
