@@ -6,6 +6,7 @@ import com.tipin.model.Section;
 import com.tipin.model.SectionSlot;
 import com.tipin.service.SectionService;
 import com.tipin.util.HandlerUtil;
+import com.tipin.util.JsonUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -16,7 +17,9 @@ public class SectionHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange ex) throws IOException {
-        if (HandlerUtil.handleCors(ex)) return;
+        if (HandlerUtil.handleCors(ex)) {
+            return;
+        }
 
         String path = ex.getRequestURI().getPath();
         String method = ex.getRequestMethod();
@@ -25,19 +28,19 @@ public class SectionHandler implements HttpHandler {
             if (method.equals("GET") && path.equals("/api/sections")) {
                 String professorId = HandlerUtil.getQueryParam(ex, "professor_id");
 
-                List<Section> list;
+                List<Section> sections;
 
                 if (professorId == null) {
-                    list = SectionService.getAll();
+                    sections = SectionService.getAll();
                 } else {
-                    list = SectionService.getByProfessor(
+                    sections = SectionService.getByProfessor(
                         Integer.parseInt(professorId)
                     );
                 }
 
                 JSONArray arr = new JSONArray();
 
-                for (Section s : list) {
+                for (Section s : sections) {
                     JSONObject o = new JSONObject();
 
                     o.put("id", s.getId());
@@ -66,13 +69,79 @@ public class SectionHandler implements HttpHandler {
                 }
 
                 HandlerUtil.sendResponse(ex, 200, arr.toString());
-
-            } else {
-                HandlerUtil.sendError(ex, 404, "Not found");
+                return;
             }
 
+            if (method.equals("POST") && path.equals("/api/sections")) {
+                JSONObject body = JsonUtil.parse(HandlerUtil.readBody(ex));
+
+                int courseId = body.getInt("course_id");
+                int professorId = body.getInt("professor_id");
+                int capacity = body.getInt("capacity");
+                String sectionCode = body.getString("section_code");
+                JSONArray slots = body.getJSONArray("slots");
+
+                int sectionId = SectionService.createSection(
+                    courseId,
+                    professorId,
+                    capacity,
+                    sectionCode,
+                    slots
+                );
+
+                JSONObject response = new JSONObject();
+                response.put("message", "Section created successfully");
+                response.put("id", sectionId);
+
+                HandlerUtil.sendResponse(ex, 201, response.toString());
+                return;
+            }
+
+            if (method.equals("PUT") && path.matches("/api/sections/\\d+")) {
+                int sectionId = Integer.parseInt(
+                    HandlerUtil.lastSegment(ex)
+                );
+
+                JSONObject body = JsonUtil.parse(HandlerUtil.readBody(ex));
+
+                int professorId = body.getInt("professor_id");
+                int capacity = body.getInt("capacity");
+                JSONArray slots = body.getJSONArray("slots");
+
+                boolean updated = SectionService.updateSection(
+                    sectionId,
+                    professorId,
+                    capacity,
+                    slots
+                );
+
+                if (!updated) {
+                    HandlerUtil.sendError(ex, 404, "Section not found");
+                    return;
+                }
+
+                JSONObject response = new JSONObject();
+                response.put("message", "Section updated successfully");
+                response.put("id", sectionId);
+
+                HandlerUtil.sendResponse(ex, 200, response.toString());
+                return;
+            }
+
+            if (method.equals("GET") && path.equals("/api/conflicts")) {
+                JSONArray conflicts = SectionService.getScheduleConflicts();
+                HandlerUtil.sendResponse(ex, 200, conflicts.toString());
+                return;
+            }
+
+            HandlerUtil.sendError(ex, 404, "Not found");
+
         } catch (Exception e) {
-            HandlerUtil.sendError(ex, 400, e.getMessage());
+            HandlerUtil.sendError(
+                ex,
+                400,
+                e.getMessage() == null ? "Request failed" : e.getMessage()
+            );
         }
     }
 }
