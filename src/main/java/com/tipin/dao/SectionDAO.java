@@ -16,8 +16,8 @@ public class SectionDAO {
         "SELECT s.id, COALESCE(s.section_code, '') AS section_code, c.code, c.title, "
         + "COALESCE(u.name, 'TBA') AS professor_name, "
         + "COALESCE((SELECT string_agg(sc.day_of_week || ' ' || LEFT(sc.start_time::text, 5) "
-        + "      || '-' || LEFT(sc.end_time::text, 5), ', ' ORDER BY sc.id) "
-        + "    FROM schedules sc WHERE sc.section_id = s.id), 'TBA') AS schedule, "
+        + "|| '-' || LEFT(sc.end_time::text, 5), ', ' ORDER BY sc.id) "
+        + "FROM schedules sc WHERE sc.section_id = s.id), 'TBA') AS schedule, "
         + "s.current_enrollees, s.capacity "
         + "FROM sections s "
         + "JOIN courses c ON c.id = s.course_id "
@@ -95,10 +95,7 @@ public class SectionDAO {
                     slot.setEndTime(rs.getString("end_time"));
 
                     slotsBySection
-                        .computeIfAbsent(
-                            sectionId,
-                            key -> new ArrayList<>()
-                        )
+                        .computeIfAbsent(sectionId, key -> new ArrayList<>())
                         .add(slot);
                 }
             }
