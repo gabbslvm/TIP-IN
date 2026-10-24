@@ -51,23 +51,13 @@ textarea:focus-visible {
     top: 0;
     bottom: 0;
     left: 0;
-    width: min(300px, 86vw);
+    width: 280px;
     background: var(--dark);
     color: white;
     padding: calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));
     z-index: 30;
     display: flex;
     flex-direction: column;
-    transform: translateX(-104%);
-    visibility: hidden;
-    transition: transform .4s var(--ease), visibility 0s linear .4s;
-}
-
-.side.open {
-    transform: none;
-    visibility: visible;
-    transition-delay: 0s;
-    box-shadow: 0 0 50px rgba(0, 0, 0, .45);
 }
 
 .sideHead {
@@ -95,20 +85,20 @@ textarea:focus-visible {
 }
 
 .sideClose {
+    display: none;
     width: 40px;
     height: 40px;
     border: 0;
-    border-radius: 50%;
-    background: #ffffff14;
-    color: white;
-    font-size: 26px;
+    background: none;
+    color: #ddd;
+    font-size: 30px;
     line-height: 1;
     cursor: pointer;
-    transition: transform .3s var(--ease), background .2s;
+    transition: color .2s, transform .3s var(--ease);
 }
 
 .sideClose:hover {
-    background: #ffffff26;
+    color: var(--yellow);
     transform: rotate(90deg);
 }
 
@@ -252,7 +242,7 @@ textarea:focus-visible {
     background: #fff;
     cursor: pointer;
     flex-shrink: 0;
-    display: flex;
+    display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -294,8 +284,7 @@ textarea:focus-visible {
 
 /* ===== MAIN ===== */
 .main {
-    max-width: 1280px;
-    margin: 0 auto;
+    margin: 0 0 0 280px;
     padding: 0 clamp(16px, 4vw, 40px) 48px;
 }
 
@@ -1562,6 +1551,32 @@ body.appEnter .main {
 
     .weekGrid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+        .side {
+        width: min(300px, 86vw);
+        transform: translateX(-104%);
+        visibility: hidden;
+        transition: transform .4s var(--ease), visibility 0s linear .4s;
+    }
+
+    .side.open {
+        transform: none;
+        visibility: visible;
+        transition-delay: 0s;
+        box-shadow: 0 0 50px rgba(0, 0, 0, .45);
+    }
+
+    .sideClose {
+        display: block;
+    }
+
+    .burger {
+        display: flex;
+    }
+
+    .main {
+        margin-left: 0;
     }
 }
 
