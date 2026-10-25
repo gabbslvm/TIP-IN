@@ -28,7 +28,8 @@ public class AuthHandler implements HttpHandler {
         try {
             // logout has no body, so it is handled before the JSON is read
             if (path.equals("/api/auth/logout")) {
-                if (HandlerUtil.requireAuth(exchange) == null) return;
+                if (HandlerUtil.requireAuth(exchange) == null)
+                    return;
                 AuthService.endSession(HandlerUtil.bearerToken(exchange));
                 HandlerUtil.sendResponse(exchange, 200, "{\"message\":\"Logged out\"}");
                 return;
@@ -65,11 +66,13 @@ public class AuthHandler implements HttpHandler {
                     HandlerUtil.sendError(exchange, 400, "Invalid role");
                     return;
                 }
-                // Coordinator accounts need the invitation code set in COORDINATOR_INVITE_CODE
-                String invite = System.getenv("COORDINATOR_INVITE_CODE");
-                if (role.equals("coordinator")
+                // Coordinator and professor accounts each need their own invitation code (set
+                // as env vars)
+                String invite = role.equals("coordinator") ? System.getenv("COORDINATOR_INVITE_CODE")
+                        : role.equals("professor") ? System.getenv("PROFESSOR_INVITE_CODE") : null;
+                if (!role.equals("student")
                         && (invite == null || invite.isEmpty() || !invite.equals(json.optString("invite_code")))) {
-                    HandlerUtil.sendError(exchange, 403, "Invalid invitation code for a coordinator account");
+                    HandlerUtil.sendError(exchange, 403, "Invalid invitation code for a " + role + " account");
                     return;
                 }
                 if (password.length() < 8) {
@@ -100,7 +103,8 @@ public class AuthHandler implements HttpHandler {
 
             } else if (path.equals("/api/auth/password")) {
                 User caller = HandlerUtil.requireAuth(exchange);
-                if (caller == null) return;
+                if (caller == null)
+                    return;
                 int userId = json.getInt("user_id");
                 if (caller.getId() != userId) {
                     HandlerUtil.deny(exchange);
