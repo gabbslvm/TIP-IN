@@ -3,6 +3,7 @@ package com.tipin.handler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.tipin.model.CourseInterest;
+import com.tipin.model.User;
 import com.tipin.service.CourseInterestService;
 import com.tipin.util.HandlerUtil;
 import com.tipin.util.JsonUtil;
@@ -19,6 +20,7 @@ public class CourseInterestHandler implements HttpHandler {
 
         try {
             if (method.equals("GET") && path.equals("/api/demand")) {
+                if (HandlerUtil.requireAuth(ex) == null) return;   // any logged-in user
                 JSONArray arr = new JSONArray();
                 for (Object[] r : CourseInterestService.getDemandCounts()) {
                     JSONObject o = new JSONObject();
@@ -31,9 +33,16 @@ public class CourseInterestHandler implements HttpHandler {
                 HandlerUtil.sendResponse(ex, 200, arr.toString());
 
             } else if (method.equals("POST") && path.equals("/api/demand")) {
+                User caller = HandlerUtil.requireAuth(ex, "student");
+                if (caller == null) return;
+
                 JSONObject j = JsonUtil.parse(HandlerUtil.readBody(ex));
+                if (j.getInt("student_id") != caller.getId()) {   // students can only record their own interest
+                    HandlerUtil.deny(ex);
+                    return;
+                }
                 CourseInterest ci = new CourseInterest();
-                ci.setStudentId(j.getInt("student_id"));
+                ci.setStudentId(caller.getId());
                 ci.setCourseId(j.getInt("course_id"));
 
                 if (CourseInterestService.submitInterest(ci)) {

@@ -3,6 +3,7 @@ package com.tipin.handler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.tipin.model.ProfAvailability;
+import com.tipin.model.User;
 import com.tipin.service.AvailabilityService;
 import com.tipin.util.HandlerUtil;
 import com.tipin.util.JsonUtil;
@@ -26,6 +27,8 @@ public class AvailabilityHandler implements HttpHandler {
 
         try {
             if (method.equals("GET") && path.equals("/api/availability")) {
+                if (HandlerUtil.requireAuth(ex, "coordinator") == null) return;
+
                 JSONArray arr = new JSONArray();
 
                 for (ProfAvailability a : AvailabilityService.getAll()) {
@@ -44,9 +47,18 @@ public class AvailabilityHandler implements HttpHandler {
             } else if (method.equals("GET")
                     && path.startsWith("/api/availability/")) {
 
+                User caller = HandlerUtil.requireAuth(ex, "professor", "coordinator");
+                if (caller == null) return;
+
                 int professorId = Integer.parseInt(
                     HandlerUtil.lastSegment(ex)
                 );
+
+                // a professor can only read their own slots
+                if (!caller.getRole().equalsIgnoreCase("coordinator") && caller.getId() != professorId) {
+                    HandlerUtil.deny(ex);
+                    return;
+                }
 
                 JSONArray arr = new JSONArray();
 
@@ -64,9 +76,18 @@ public class AvailabilityHandler implements HttpHandler {
             } else if (method.equals("PUT")
                     && path.startsWith("/api/availability/")) {
 
+                User caller = HandlerUtil.requireAuth(ex, "professor");
+                if (caller == null) return;
+
                 int professorId = Integer.parseInt(
                     HandlerUtil.lastSegment(ex)
                 );
+
+                // a professor can only change their own slots
+                if (caller.getId() != professorId) {
+                    HandlerUtil.deny(ex);
+                    return;
+                }
 
                 JSONArray arr = JsonUtil.parse(HandlerUtil.readBody(ex))
                     .getJSONArray("slots");

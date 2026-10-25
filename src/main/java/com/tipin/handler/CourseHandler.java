@@ -19,6 +19,7 @@ public class CourseHandler implements HttpHandler {
         String path = exchange.getRequestURI().getPath();
 
         if (exchange.getRequestMethod().equals("GET") && path.equals("/api/courses")) {
+            if (HandlerUtil.requireAuth(exchange) == null) return;   // any logged-in user
             try {
                 JSONArray array = new JSONArray();
                 for (Course c : CourseService.getAllCourses()) {
@@ -34,6 +35,7 @@ public class CourseHandler implements HttpHandler {
                 HandlerUtil.sendError(exchange, 500, e.getMessage());
             }
         } else if (exchange.getRequestMethod().equals("POST") && path.equals("/api/courses")) {
+            if (HandlerUtil.requireAuth(exchange, "coordinator") == null) return;
             try {
                 JSONObject j = JsonUtil.parse(HandlerUtil.readBody(exchange));
                 String code = j.getString("code").trim();

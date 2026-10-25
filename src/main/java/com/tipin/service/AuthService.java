@@ -23,6 +23,22 @@ public class AuthService {
         return null;
     }
 
+    // Creates a session row and returns the token the client must send back
+    public static String startSession(User user) throws Exception {
+        String token = TokenUtil.newToken();
+        new SessionDAO().create(TokenUtil.hash(token), user.getId());
+        return token;
+    }
+
+    // The logged-in user for this token, or null if it is unknown or expired
+    public static User authenticate(String token) throws Exception {
+        return new SessionDAO().findUser(TokenUtil.hash(token));
+    }
+
+    public static void endSession(String token) throws Exception {
+        new SessionDAO().delete(TokenUtil.hash(token));
+    }
+
     public static void changePassword(int userId, String current, String next) throws Exception {
         UserDAO dao = new UserDAO();
         User user = dao.findById(userId);

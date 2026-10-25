@@ -2,6 +2,7 @@ package com.tipin.handler;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import com.tipin.model.User;
 import com.tipin.service.EnrollmentService;
 import com.tipin.util.HandlerUtil;
 import com.tipin.util.JsonUtil;
@@ -17,18 +18,32 @@ public class EnrollmentHandler implements HttpHandler {
 
         try {
             if (method.equals("POST") && path.equals("/api/enrollments")) {
+                User caller = HandlerUtil.requireAuth(ex, "student");
+                if (caller == null) return;
+
                 JSONObject j = JsonUtil.parse(HandlerUtil.readBody(ex));
-                EnrollmentService.enroll(j.getInt("student_id"), j.getInt("section_id"));
+                if (j.getInt("student_id") != caller.getId()) {   // students can only enroll themselves
+                    HandlerUtil.deny(ex);
+                    return;
+                }
+                EnrollmentService.enroll(caller.getId(), j.getInt("section_id"));
                 HandlerUtil.sendResponse(ex, 201, "{\"message\":\"Section added\"}");
 
             } else if (method.equals("DELETE") && path.equals("/api/enrollments")) {
+                User caller = HandlerUtil.requireAuth(ex, "student");
+                if (caller == null) return;
+
                 String sid = HandlerUtil.getQueryParam(ex, "student_id");
                 String sec = HandlerUtil.getQueryParam(ex, "section_id");
                 if (sid == null || sec == null) {
                     HandlerUtil.sendError(ex, 400, "student_id and section_id are required");
                     return;
                 }
-                if (!EnrollmentService.drop(Integer.parseInt(sid), Integer.parseInt(sec))) {
+                if (Integer.parseInt(sid) != caller.getId()) {   // students can only drop their own sections
+                    HandlerUtil.deny(ex);
+                    return;
+                }
+                if (!EnrollmentService.drop(caller.getId(), Integer.parseInt(sec))) {
                     HandlerUtil.sendError(ex, 404, "You are not enrolled in this section");
                     return;
                 }

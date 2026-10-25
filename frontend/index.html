@@ -92,6 +92,11 @@
                         <input type="password" id="regConfirm" autocomplete="new-password"
                             placeholder="Re-enter your password">
 
+                        <div id="inviteField" style="display:none">
+                            <label>Invitation Code</label>
+                            <input id="regInvite" autocomplete="off" placeholder="Enter your invitation code">
+                        </div>
+
                         <label class="showPass">
                             <input type="checkbox" onchange="togglePassword(['regPassword','regConfirm'], this)"> Show passwords
                         </label>

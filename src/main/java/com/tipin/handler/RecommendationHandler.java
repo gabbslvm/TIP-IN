@@ -19,6 +19,7 @@ public class RecommendationHandler implements HttpHandler {
 
         try {
             if (method.equals("GET") && path.equals("/api/recommendations")) {
+                if (HandlerUtil.requireAuth(ex, "coordinator") == null) return;
                 JSONArray arr = new JSONArray();
                 for (Recommendation r : RecommendationService.getAll()) {
                     JSONObject o = new JSONObject();
@@ -36,6 +37,7 @@ public class RecommendationHandler implements HttpHandler {
                 HandlerUtil.sendResponse(ex, 200, arr.toString());
 
             } else if (method.equals("PUT") && path.startsWith("/api/recommendations/")) {
+                if (HandlerUtil.requireAuth(ex, "coordinator") == null) return;
                 int id = Integer.parseInt(HandlerUtil.lastSegment(ex));
                 String status = JsonUtil.parse(HandlerUtil.readBody(ex)).getString("status");
                 RecommendationService.updateStatus(id, status);

@@ -26,6 +26,14 @@ public class AuthHandler implements HttpHandler {
         }
 
         try {
+            // logout has no body, so it is handled before the JSON is read
+            if (path.equals("/api/auth/logout")) {
+                if (HandlerUtil.requireAuth(exchange) == null) return;
+                AuthService.endSession(HandlerUtil.bearerToken(exchange));
+                HandlerUtil.sendResponse(exchange, 200, "{\"message\":\"Logged out\"}");
+                return;
+            }
+
             JSONObject json = JsonUtil.parse(HandlerUtil.readBody(exchange));
 
             if (path.equals("/api/auth/login")) {
@@ -47,6 +55,7 @@ public class AuthHandler implements HttpHandler {
                 userJson.put("name", user.getName());
                 userJson.put("email", user.getEmail());
                 userJson.put("role", user.getRole());
+                userJson.put("token", AuthService.startSession(user));
                 HandlerUtil.sendResponse(exchange, 200, userJson.toString());
 
             } else if (path.equals("/api/auth/register")) {
@@ -54,6 +63,13 @@ public class AuthHandler implements HttpHandler {
                 String password = json.getString("password");
                 if (!ROLES.contains(role)) {
                     HandlerUtil.sendError(exchange, 400, "Invalid role");
+                    return;
+                }
+                // Coordinator accounts need the invitation code set in COORDINATOR_INVITE_CODE
+                String invite = System.getenv("COORDINATOR_INVITE_CODE");
+                if (role.equals("coordinator")
+                        && (invite == null || invite.isEmpty() || !invite.equals(json.optString("invite_code")))) {
+                    HandlerUtil.sendError(exchange, 403, "Invalid invitation code for a coordinator account");
                     return;
                 }
                 if (password.length() < 8) {
@@ -83,7 +99,13 @@ public class AuthHandler implements HttpHandler {
                 HandlerUtil.sendResponse(exchange, 201, ok.toString());
 
             } else if (path.equals("/api/auth/password")) {
+                User caller = HandlerUtil.requireAuth(exchange);
+                if (caller == null) return;
                 int userId = json.getInt("user_id");
+                if (caller.getId() != userId) {
+                    HandlerUtil.deny(exchange);
+                    return;
+                }
                 String current = json.getString("current_password");
                 String next = json.getString("new_password");
                 if (next.length() < 8) {

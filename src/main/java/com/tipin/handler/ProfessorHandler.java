@@ -14,6 +14,7 @@ public class ProfessorHandler implements HttpHandler {
         if (HandlerUtil.handleCors(ex)) return;
         try {
             if (ex.getRequestMethod().equals("GET") && ex.getRequestURI().getPath().equals("/api/professors")) {
+                if (HandlerUtil.requireAuth(ex, "coordinator") == null) return;
                 JSONArray arr = new JSONArray();
                 for (Object[] p : new UserDAO().findProfessors()) {
                     JSONObject o = new JSONObject();

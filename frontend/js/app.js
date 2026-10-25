@@ -729,6 +729,7 @@ function selectPortal(key) {
     $("portalSection").style.display = "none";
     $("loginFormBox").style.display = "block";
     $("loginFormTitle").textContent = PORTALS[key].label + " Portal";
+    $("inviteField").style.display = key === "coordinator" ? "block" : "none";
     switchAuthTab("login");
 }
 
@@ -771,7 +772,7 @@ async function doLogin() {
             throw new Error("This is not a " + portal.label + " account. Please use the correct portal.");
         }
 
-        setUser({ id: account.id, name: account.name, email: account.email, role: role, account: String(account.role).toLowerCase() });
+        setUser({ id: account.id, name: account.name, email: account.email, role: role, account: String(account.role).toLowerCase(), token: account.token });
         $("loginPassword").value = "";
         enterApp(currentUser);
     } catch (error) {
@@ -794,12 +795,18 @@ async function doRegister() {
     if (password.length < 8) { toast("Password must be at least 8 characters.", "error"); return; }
     if (password !== confirm) { toast("Passwords do not match.", "error"); return; }
 
+    const body = { name: name, email: email, password: password, role: portal.api };
+    if (portal.api === "coordinator") {
+        body.invite_code = $("regInvite").value.trim();
+        if (!body.invite_code) { toast("Enter your invitation code.", "error"); return; }
+    }
+
     const button = document.querySelector("#registerForm .btn");
     setBusy(button, true, "Creating account...");
     try {
-        await api("/api/auth/register", "POST", { name: name, email: email, password: password, role: portal.api });
+        await api("/api/auth/register", "POST", body);
         toast("Account created! You can now log in.", "success");
-        ["regName", "regPassword", "regConfirm", "regEmail"].forEach(function (id) { $(id).value = ""; });
+        ["regName", "regPassword", "regConfirm", "regEmail", "regInvite"].forEach(function (id) { $(id).value = ""; });
         $("loginUsername").value = email;
         switchAuthTab("login");
     } catch (error) {
@@ -858,6 +865,8 @@ function confirmLogout() {
 }
 
 function logout(reason) {
+    // end the session on the server too (the token is read before clearUser runs)
+    if (currentUser && currentUser.token) api("/api/auth/logout", "POST").catch(function () { /* already gone */ });
     clearUser();
     selectedPortal = "";
     currentPageId = null;

@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.tipin.model.Section;
 import com.tipin.model.SectionSlot;
+import com.tipin.model.User;
 import com.tipin.service.SectionService;
 import com.tipin.util.HandlerUtil;
 import com.tipin.util.JsonUtil;
@@ -26,8 +27,20 @@ public class SectionHandler implements HttpHandler {
 
         try {
             if (method.equals("GET") && path.equals("/api/sections")) {
+                User caller = HandlerUtil.requireAuth(ex);   // any logged-in user
+                if (caller == null) return;
+
                 String professorId = HandlerUtil.getQueryParam(ex, "professor_id");
                 String studentId = HandlerUtil.getQueryParam(ex, "student_id");
+
+                // a filter must be the caller's own id, unless the caller is a coordinator
+                boolean coordinator = caller.getRole().equalsIgnoreCase("coordinator");
+                if (!coordinator
+                        && ((professorId != null && Integer.parseInt(professorId) != caller.getId())
+                        || (studentId != null && Integer.parseInt(studentId) != caller.getId()))) {
+                    HandlerUtil.deny(ex);
+                    return;
+                }
 
                 List<Section> sections;
 
@@ -75,6 +88,8 @@ public class SectionHandler implements HttpHandler {
             }
 
             if (method.equals("POST") && path.equals("/api/sections")) {
+                if (HandlerUtil.requireAuth(ex, "coordinator") == null) return;
+
                 JSONObject body = JsonUtil.parse(HandlerUtil.readBody(ex));
 
                 int courseId = body.getInt("course_id");
@@ -99,6 +114,8 @@ public class SectionHandler implements HttpHandler {
             }
 
             if (method.equals("PUT") && path.matches("/api/sections/\\d+")) {
+                if (HandlerUtil.requireAuth(ex, "coordinator") == null) return;
+
                 int sectionId = Integer.parseInt(
                         HandlerUtil.lastSegment(ex));
 
@@ -130,12 +147,16 @@ public class SectionHandler implements HttpHandler {
             }
 
             if (method.equals("GET") && path.equals("/api/conflicts")) {
+                if (HandlerUtil.requireAuth(ex, "coordinator") == null) return;
+
                 JSONArray conflicts = SectionService.getScheduleConflicts();
                 HandlerUtil.sendResponse(ex, 200, conflicts.toString());
                 return;
             }
 
             if (method.equals("DELETE") && path.matches("/api/sections/\\d+")) {
+                if (HandlerUtil.requireAuth(ex, "coordinator") == null) return;
+
                 int sectionId = Integer.parseInt(HandlerUtil.lastSegment(ex));
 
                 if (!SectionService.deleteSection(sectionId)) {

@@ -17,6 +17,7 @@ public class AnnouncementHandler implements HttpHandler {
 
         try {
             if (ex.getRequestMethod().equals("GET") && ex.getRequestURI().getPath().equals("/api/announcements")) {
+                if (HandlerUtil.requireAuth(ex) == null) return;   // any logged-in user
                 JSONArray arr = new JSONArray();
                 for (String[] a : AnnouncementService.getAll()) {
                     JSONObject o = new JSONObject();
@@ -28,6 +29,7 @@ public class AnnouncementHandler implements HttpHandler {
                 HandlerUtil.sendResponse(ex, 200, arr.toString());
             } else if (ex.getRequestMethod().equals("POST")
                     && ex.getRequestURI().getPath().equals("/api/announcements")) {
+                if (HandlerUtil.requireAuth(ex, "coordinator") == null) return;
                 JSONObject j = JsonUtil.parse(HandlerUtil.readBody(ex));
                 String title = j.getString("title").trim();
                 String message = j.getString("message").trim();

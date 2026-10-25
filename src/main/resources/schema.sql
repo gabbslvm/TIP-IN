@@ -94,3 +94,12 @@ CREATE TABLE enrollments (
   date_enrolled TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT uq_enrollment UNIQUE (student_id, section_id)
 );
+
+CREATE TABLE sessions (
+  token_hash VARCHAR(64) PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP NOT NULL
+);
+
+CREATE INDEX idx_sessions_user ON sessions(user_id);
