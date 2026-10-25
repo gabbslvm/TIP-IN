@@ -22,4 +22,13 @@ public class AuthService {
         }
         return null;
     }
+
+    public static void changePassword(int userId, String current, String next) throws Exception {
+        UserDAO dao = new UserDAO();
+        User user = dao.findById(userId);
+        if (user == null || !PasswordUtil.checkPassword(current, user.getPassword())) {
+            throw new Exception("Current password is incorrect");
+        }
+        dao.updatePassword(userId, PasswordUtil.hashPassword(next));
+    }
 }

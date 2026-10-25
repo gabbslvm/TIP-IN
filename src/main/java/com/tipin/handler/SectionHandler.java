@@ -27,15 +27,16 @@ public class SectionHandler implements HttpHandler {
         try {
             if (method.equals("GET") && path.equals("/api/sections")) {
                 String professorId = HandlerUtil.getQueryParam(ex, "professor_id");
+                String studentId = HandlerUtil.getQueryParam(ex, "student_id");
 
                 List<Section> sections;
 
-                if (professorId == null) {
-                    sections = SectionService.getAll();
+                if (professorId != null) {
+                    sections = SectionService.getByProfessor(Integer.parseInt(professorId));
+                } else if (studentId != null) {
+                    sections = SectionService.getByStudent(Integer.parseInt(studentId));
                 } else {
-                    sections = SectionService.getByProfessor(
-                        Integer.parseInt(professorId)
-                    );
+                    sections = SectionService.getAll();
                 }
 
                 JSONArray arr = new JSONArray();
@@ -79,16 +80,15 @@ public class SectionHandler implements HttpHandler {
                 int courseId = body.getInt("course_id");
                 int professorId = body.getInt("professor_id");
                 int capacity = body.getInt("capacity");
-                String sectionCode = body.getString("section_code");
+                String sectionCode = body.getString("section_code").trim();
                 JSONArray slots = body.getJSONArray("slots");
 
                 int sectionId = SectionService.createSection(
-                    courseId,
-                    professorId,
-                    capacity,
-                    sectionCode,
-                    slots
-                );
+                        courseId,
+                        professorId,
+                        capacity,
+                        sectionCode,
+                        slots);
 
                 JSONObject response = new JSONObject();
                 response.put("message", "Section created successfully");
@@ -100,21 +100,21 @@ public class SectionHandler implements HttpHandler {
 
             if (method.equals("PUT") && path.matches("/api/sections/\\d+")) {
                 int sectionId = Integer.parseInt(
-                    HandlerUtil.lastSegment(ex)
-                );
+                        HandlerUtil.lastSegment(ex));
 
                 JSONObject body = JsonUtil.parse(HandlerUtil.readBody(ex));
 
                 int professorId = body.getInt("professor_id");
                 int capacity = body.getInt("capacity");
+                int enrollees = body.getInt("current_enrollees");
                 JSONArray slots = body.getJSONArray("slots");
 
                 boolean updated = SectionService.updateSection(
-                    sectionId,
-                    professorId,
-                    capacity,
-                    slots
-                );
+                        sectionId,
+                        professorId,
+                        capacity,
+                        enrollees,
+                        slots);
 
                 if (!updated) {
                     HandlerUtil.sendError(ex, 404, "Section not found");
@@ -135,14 +135,25 @@ public class SectionHandler implements HttpHandler {
                 return;
             }
 
+            if (method.equals("DELETE") && path.matches("/api/sections/\\d+")) {
+                int sectionId = Integer.parseInt(HandlerUtil.lastSegment(ex));
+
+                if (!SectionService.deleteSection(sectionId)) {
+                    HandlerUtil.sendError(ex, 404, "Section not found");
+                    return;
+                }
+
+                HandlerUtil.sendResponse(ex, 200, "{\"message\":\"Section deleted\"}");
+                return;
+            }
+
             HandlerUtil.sendError(ex, 404, "Not found");
 
         } catch (Exception e) {
             HandlerUtil.sendError(
-                ex,
-                400,
-                e.getMessage() == null ? "Request failed" : e.getMessage()
-            );
+                    ex,
+                    400,
+                    e.getMessage() == null ? "Request failed" : e.getMessage());
         }
     }
 }

@@ -23,6 +23,7 @@ public class RecommendationHandler implements HttpHandler {
                 for (Recommendation r : RecommendationService.getAll()) {
                     JSONObject o = new JSONObject();
                     o.put("id", r.getId());
+                    o.put("course_id", r.getCourseId());
                     o.put("course_code", r.getCourseCode());
                     o.put("course_title", r.getCourseTitle());
                     o.put("demand_count", r.getDemandCount());

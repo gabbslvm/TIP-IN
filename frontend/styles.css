@@ -1877,3 +1877,52 @@ body.appEnter .main {
         padding: 22px;
     }
 }
+
+/* ===== NOTIFICATION LIST ===== */
+.notifPanel {
+    position: fixed;
+    top: calc(64px + env(safe-area-inset-top));
+    right: 16px;
+    width: min(360px, calc(100vw - 32px));
+    max-height: 60vh;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .2);
+    z-index: 40;
+    animation: fadeUp .3s var(--ease) both;
+}
+
+.notifHead {
+    padding: 14px 16px;
+    font-weight: 700;
+    border-bottom: 1px solid var(--line);
+}
+
+.notifItem {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: #fff;
+    padding: 12px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.notifItem:hover {
+    background: #fffdf0;
+}
+
+.notifItem.unread {
+    font-weight: 700;
+    background: #fff8d6;
+}
+
+.notifEmpty {
+    padding: 20px 16px;
+    color: var(--muted);
+    text-align: center;
+}

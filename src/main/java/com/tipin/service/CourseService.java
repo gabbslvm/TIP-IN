@@ -15,4 +15,8 @@ public class CourseService {
             return Collections.emptyList();
         }
     }
+
+    public static void addCourse(Course course) throws Exception {
+        new CourseDAO().insertCourse(course);
+    }
 }

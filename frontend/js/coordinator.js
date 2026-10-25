@@ -300,6 +300,11 @@ function recTable(animate) {
         { label: "Capacity", render: function (r) { return r.capacity > 0 ? esc(r.capacity) : '<span class="muted">No sections</span>'; } },
         { label: "Suggestion", key: "suggested_action" },
         { label: "Status", render: function (r) { return statusSelect(RECOMMENDATION_STATUSES, r.status, "recStatus", r.id); } },
+        { label: "", render: function (r) {
+            return r.status === "APPROVED"
+            ? '<button class="btn ghost" data-act="recCreateSection" data-course="' + r.course_id + '">Create Section</button>'
+            : "";
+        } },
     ], list, { empty: "No recommendations here.", animate: animate, rowAttrs: function (r) { return 'data-id="' + r.id + '"'; } });
 }
 
@@ -323,10 +328,8 @@ ACTIONS.recStatus = async function (select) {
     try {
         await api("/api/recommendations/" + id, "PUT", { status: select.value });
         toast("Recommendation marked " + STATUS_LABEL[select.value], "success");
-        const row = select.closest("tr");
-        const dot = row.querySelector(".newDot");
-        if (dot && select.value !== "NEW") dot.remove();
-        flashRow(row);
+        $("recTable").innerHTML = recTable(false);
+        flashRow(document.querySelector('#recTable tr[data-id="' + id + '"]'));
     } catch (error) {
         rec.status = previous;
         select.value = previous;
@@ -337,6 +340,11 @@ ACTIONS.recStatus = async function (select) {
     } finally {
         select.disabled = false;
     }
+};
+
+ACTIONS.recCreateSection = function (button) {
+    coordState.prefillCourse = Number(button.dataset.course);
+    showPage("sections");
 };
 
 // =====================================================
@@ -537,7 +545,10 @@ function sectionsAdminTable(animate) {
         { label: "Enrolled", render: function (s) {
             return esc(s.current_enrollees) + " / " + esc(s.capacity) + meter(s.current_enrollees, s.capacity, STATUS_CLASS[sectionState(s)]);
         } },
-        { label: "", render: function (s) { return '<button class="btn ghost" data-act="secEdit" data-id="' + s.id + '">Edit</button>'; } },
+        { label: "", render: function (s) {
+        return '<button class="btn ghost" data-act="secEdit" data-id="' + s.id + '">Edit</button> ' +
+            '<button class="btn ghost" data-act="secDelete" data-id="' + s.id + '">Delete</button>';
+        } },
     ], coordState.sections, { empty: "No sections yet.", animate: animate });
 }
 
@@ -581,7 +592,8 @@ function secForm(s) {
     return '<div class="panel"><div class="panelHead"><h3>' + (edit ? "Edit Section" : "New Section") + "</h3></div>" +
         '<div class="formGrid">' + top +
         '<div class="field"><label for="secProf">Professor</label><select id="secProf">' + profOptions + "</select></div>" +
-        '<div class="field"><label for="secCap">Capacity</label><input id="secCap" type="number" min="1" value="' + (edit ? s.capacity : 40) + '"></div></div>' +
+        '<div class="field"><label for="secCap">Capacity</label><input id="secCap" type="number" min="1" value="' + (edit ? s.capacity : 40) + '"></div>' +
+        (edit ? '<div class="field"><label for="secEnr">Enrolled Students</label><input id="secEnr" type="number" min="0" value="' + s.current_enrollees + '"></div>' : "") + "</div>" +
         '<div class="toolbar"><button class="btn ghost" data-act="secAddSlot">+ Add Time Slot</button></div>' +
         '<div class="tableWrap"><table class="availTable"><thead><tr><th>Day</th><th>Start</th><th>End</th><th></th></tr></thead>' +
         '<tbody id="secBody">' + slots.map(function (x) { return secSlotRow(x.day_of_week, x.start_time, x.end_time); }).join("") + "</tbody></table></div>" +
@@ -615,6 +627,18 @@ ACTIONS.secEdit = function (btn) {
 
 ACTIONS.secCancel = function () { coordState.editingSection = null; $("secFormBox").innerHTML = ""; };
 
+ACTIONS.secDelete = async function (button) {
+    const s = coordState.sections.find(function (x) { return x.id === Number(button.dataset.id); });
+    if (!s || !confirm("Delete " + s.course_code + " " + String(s.section_code).trim() + "?")) return;
+    try {
+        await api("/api/sections/" + s.id, "DELETE");
+        toast("Section deleted.", "success");
+        await reloadSections();
+    } catch (error) {
+        toastError(error);
+    }
+};
+
 ACTIONS.secCourseChange = function (select) { $("secCode").value = nextSectionCode(select.value); };
 
 ACTIONS.secAddSlot = function () { $("secBody").insertAdjacentHTML("beforeend", secSlotRow("Monday", "08:00", "10:00")); };
@@ -627,6 +651,10 @@ ACTIONS.secSave = async function (button) {
 
     if (!prof.value) { markInvalid(prof, "Choose a professor."); return; }
     if (!(Number(cap.value) > 0)) { markInvalid(cap, "Enter a capacity above 0."); return; }
+
+    const enr = edit ? $("secEnr") : null;
+    if (enr && !(Number(enr.value) >= 0)) { markInvalid(enr, "Enter 0 or more."); return; }
+    if (enr && Number(enr.value) > Number(cap.value)) { markInvalid(enr, "Cannot be more than the capacity."); return; }
 
     const slots = [];
     const rows = Array.from($("secBody").querySelectorAll("tr.slotRow"));
@@ -641,7 +669,7 @@ ACTIONS.secSave = async function (button) {
     setBusy(button, true, "Saving...");
     try {
         if (edit) {
-            await api("/api/sections/" + edit.id, "PUT", { professor_id: Number(prof.value), capacity: Number(cap.value), slots: slots });
+            await api("/api/sections/" + edit.id, "PUT", { professor_id: Number(prof.value), capacity: Number(cap.value), current_enrollees: Number(enr.value), slots: slots });
         } else {
             const code = $("secCode").value.trim();
             if (!code) { markInvalid($("secCode"), "Enter a section code."); return; }
@@ -657,6 +685,60 @@ ACTIONS.secSave = async function (button) {
     } finally {
         setBusy(button, false);
     }
+};
+
+// =====================================================
+// 7. COORDINATOR: COURSES (add, list)
+// =====================================================
+async function renderCoordCourses() {
+    coordState.courseList = await api("/api/courses");
+    return '<div class="panel"><div class="panelHead"><h3>Add Course</h3></div>' +
+        '<div class="formGrid">' +
+        '<div class="field"><label for="crsCode">Course Code</label><input id="crsCode" placeholder="e.g. SAD 003"></div>' +
+        '<div class="field"><label for="crsTitle">Title</label><input id="crsTitle" placeholder="Course title"></div>' +
+        '<div class="field"><label for="crsUnits">Units</label><input id="crsUnits" type="number" min="1" max="6" value="3"></div></div>' +
+        '<button class="btn" data-act="courseAdd">Add Course</button></div>' +
+        '<div class="panel"><div class="panelHead"><h3>Courses</h3><span class="muted" id="crsCount">' + coordState.courseList.length + ' total</span></div>' +
+        '<div id="crsTable">' + coursesTable(true) + "</div></div>";
+}
+
+function coursesTable(animate) {
+    return renderTable([
+        { label: "Code", key: "code" },
+        { label: "Title", key: "title" },
+        { label: "Units", key: "units" },
+    ], coordState.courseList, { empty: "No courses yet.", animate: animate });
+}
+
+ACTIONS.courseAdd = async function (button) {
+    const code = $("crsCode"), title = $("crsTitle"), units = $("crsUnits");
+    if (!code.value.trim()) { markInvalid(code, "Enter a course code."); return; }
+    if (!title.value.trim()) { markInvalid(title, "Enter a title."); return; }
+    if (!(Number(units.value) >= 1)) { markInvalid(units, "Units must be at least 1."); return; }
+
+    setBusy(button, true, "Adding...");
+    try {
+        await api("/api/courses", "POST", { code: code.value.trim(), title: title.value.trim(), units: Number(units.value) });
+        toast("Course " + code.value.trim() + " added!", "success");
+        code.value = ""; title.value = ""; units.value = 3;
+        coordState.courseList = await api("/api/courses");
+        $("crsTable").innerHTML = coursesTable(false);
+        $("crsCount").textContent = coordState.courseList.length + " total";
+        flashRow(document.querySelector("#crsTable tbody tr"));
+    } catch (error) {
+        toastError(error);
+    } finally {
+        setBusy(button, false);
+    }
+};
+
+// opens the New Section form with the course picked from an approved recommendation
+PAGES.COORDINATOR.find(function (p) { return p.id === "sections"; }).mount = function () {
+    if (!coordState.prefillCourse) return;
+    showSecForm(null);
+    $("secCourse").value = coordState.prefillCourse;
+    $("secCode").value = nextSectionCode(coordState.prefillCourse);
+    coordState.prefillCourse = null;
 };
 
 // the availability page needs its empty-state check right after the HTML is drawn

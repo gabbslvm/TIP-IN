@@ -1,5 +1,5 @@
 // student.js
-// Student pages: Dashboard, Petitions, Demand, Sections.
+// Student pages: Dashboard, Petitions, Demand, Sections, My Sections, My Schedule.
 // Needs from app.js: api, currentUser, esc, renderCards, renderTable, statusPage,
 // toast, toastError, badge, sectionState, initialSections, allInitialFull, meter, ACTIONS ...
 
@@ -9,6 +9,7 @@ const studentState = {
     courses: [],
     petitions: [],
     sections: [],
+    mine: [],              // sections this student added
     demand: {},            // course_id -> how many students are interested
     interested: new Set(), // course ids this student already clicked
     sectionFilter: "ALL",
@@ -336,7 +337,12 @@ ACTIONS.interest = async function (button) {
 // 4. SECTIONS
 // =====================================================
 async function renderStudentSections() {
-    studentState.sections = await api("/api/sections");
+    const r = await Promise.all([
+        api("/api/sections"),
+        api("/api/sections?student_id=" + currentUser.id),
+    ]);
+    studentState.sections = r[0];
+    studentState.mine = r[1];
     studentState.sectionFilter = "ALL";
     return '<div class="panel"><div class="panelHead"><h3>Sections</h3><span class="muted">' + studentState.sections.length + " total</span></div>" +
         '<div class="toolbar"><input id="sectionSearch" type="search" placeholder="Search course, section, professor or schedule..." data-input="filterSections">' +
@@ -372,6 +378,7 @@ function sectionsTable(query, animate) {
             },
         },
         { label: "Status", render: function (s) { return badge(sectionState(s)); } },
+        { label: "", render: sectionAction },
     ], list, { empty: "No sections match.", animate: animate });
 }
 
@@ -384,3 +391,94 @@ ACTIONS.sectionFilter = function (chip) {
     $("sectionChips").innerHTML = sectionChips();
     $("sectionTable").innerHTML = sectionsTable($("sectionSearch").value, false);
 };
+
+// =====================================================
+// 5. MY SECTIONS + MY SCHEDULE (add / drop)
+// =====================================================
+function sectionAction(s) {
+    const mine = studentState.mine.some(function (m) { return m.id === s.id; });
+    if (mine) return '<button class="btn ghost" data-act="secDrop" data-id="' + s.id + '">Drop</button>';
+    if (sectionState(s) === "FULL") return '<span class="muted">Full</span>';
+    return '<button class="btn" data-act="secEnroll" data-id="' + s.id + '">Add</button>';
+}
+
+async function reloadStudentSections() {
+    const r = await Promise.all([
+        api("/api/sections"),
+        api("/api/sections?student_id=" + currentUser.id),
+    ]);
+    studentState.sections = r[0];
+    studentState.mine = r[1];
+    $("sectionChips").innerHTML = sectionChips();
+    $("sectionTable").innerHTML = sectionsTable($("sectionSearch").value, false);
+}
+
+ACTIONS.secEnroll = async function (button) {
+    setBusy(button, true, "Adding...");
+    try {
+        await api("/api/enrollments", "POST", { student_id: currentUser.id, section_id: Number(button.dataset.id) });
+        toast("Section added to My Sections!", "success");
+        await reloadStudentSections();
+    } catch (error) {
+        toastError(error);
+        setBusy(button, false);
+    }
+};
+
+ACTIONS.secDrop = async function (button) {
+    if (!confirm("Drop this section?")) return;
+    setBusy(button, true, "Dropping...");
+    try {
+        await api("/api/enrollments?student_id=" + currentUser.id + "&section_id=" + button.dataset.id, "DELETE");
+        toast("Section dropped.", "success");
+        if ($("mineTable")) {
+            studentState.mine = await api("/api/sections?student_id=" + currentUser.id);
+            $("mineTable").innerHTML = mineTable(false);
+            $("mineCount").textContent = studentState.mine.length + " enrolled";
+        } else {
+            await reloadStudentSections();
+        }
+    } catch (error) {
+        toastError(error);
+        setBusy(button, false);
+    }
+};
+
+async function renderMySections() {
+    studentState.mine = await api("/api/sections?student_id=" + currentUser.id);
+    return '<div class="panel"><div class="panelHead"><h3>My Sections</h3>' +
+        '<span class="muted" id="mineCount">' + studentState.mine.length + " enrolled</span></div>" +
+        '<div id="mineTable">' + mineTable(true) + "</div></div>";
+}
+
+function mineTable(animate) {
+    return renderTable([
+        { label: "Course", render: function (s) { return esc(s.course_code) + " - " + esc(s.course_title); } },
+        { label: "Section", render: function (s) { return esc(String(s.section_code).trim() || "-"); } },
+        { label: "Professor", key: "professor_name" },
+        { label: "Schedule", key: "schedule" },
+        { label: "", render: function (s) { return '<button class="btn ghost" data-act="secDrop" data-id="' + s.id + '">Drop</button>'; } },
+    ], studentState.mine, { empty: "You have not added any sections yet. Go to Sections to add one.", animate: animate });
+}
+
+async function renderMySchedule() {
+    studentState.mine = await api("/api/sections?student_id=" + currentUser.id);
+    const grid = '<div class="weekGrid">' + DAYS.map(function (day) {
+        const items = [];
+        studentState.mine.forEach(function (s) {
+            (s.slots || []).forEach(function (sl) {
+                if (sl.day_of_week === day) items.push({ s: s, sl: sl });
+            });
+        });
+        items.sort(function (a, b) { return String(a.sl.start_time).localeCompare(String(b.sl.start_time)); });
+        return '<div class="dayCol"><b>' + day.slice(0, 3) + "</b>" +
+            (items.length ? items.map(function (x) {
+                return '<span class="slotPill">' + esc(x.s.course_code) + "<br>" +
+                    esc(fmtTime(x.sl.start_time)) + " - " + esc(fmtTime(x.sl.end_time)) + "</span>";
+            }).join("") : '<span class="noSlot">-</span>') + "</div>";
+    }).join("") + "</div>";
+
+    return '<div class="panel"><div class="panelHead"><h3>My Schedule</h3>' +
+        '<span class="muted">' + studentState.mine.length + (studentState.mine.length === 1 ? " section" : " sections") + "</span></div>" +
+        (studentState.mine.length ? grid : statusPage("empty", "No sections yet. Add sections from the Sections page.")) + "</div>";
+}

@@ -15,7 +15,8 @@ public class AuthHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if (HandlerUtil.handleCors(exchange)) return;
+        if (HandlerUtil.handleCors(exchange))
+            return;
 
         String path = exchange.getRequestURI().getPath();
 
@@ -80,6 +81,17 @@ public class AuthHandler implements HttpHandler {
                 JSONObject ok = new JSONObject();
                 ok.put("message", "User registered successfully");
                 HandlerUtil.sendResponse(exchange, 201, ok.toString());
+
+            } else if (path.equals("/api/auth/password")) {
+                int userId = json.getInt("user_id");
+                String current = json.getString("current_password");
+                String next = json.getString("new_password");
+                if (next.length() < 8) {
+                    HandlerUtil.sendError(exchange, 400, "Password must be at least 8 characters");
+                    return;
+                }
+                AuthService.changePassword(userId, current, next);
+                HandlerUtil.sendResponse(exchange, 200, "{\"message\":\"Password updated\"}");
 
             } else {
                 HandlerUtil.sendError(exchange, 404, "Not found");

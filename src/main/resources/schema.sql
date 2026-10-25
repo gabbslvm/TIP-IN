@@ -49,8 +49,7 @@ CREATE TABLE professor_availability (
   professor_id INT REFERENCES users(id),
   day_of_week VARCHAR(20) NOT NULL,
   start_time TIME NOT NULL,
-  end_time TIME NOT NULL,
-  CONSTRAINT uq_prof_day UNIQUE (professor_id, day_of_week)
+  end_time TIME NOT NULL
 );
 
 CREATE TABLE recommendations (
@@ -74,4 +73,24 @@ CREATE TABLE announcements (
   title VARCHAR(255) NOT NULL,
   message TEXT NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE VIEW schedule_conflicts AS
+SELECT a.section_id AS section_id_1, b.section_id AS section_id_2,
+      s1.professor_id, a.day_of_week,
+      a.start_time AS start_1, a.end_time AS end_1,
+      b.start_time AS start_2, b.end_time AS end_2
+FROM schedules a
+JOIN schedules b ON a.day_of_week = b.day_of_week AND a.id < b.id
+  AND a.start_time < b.end_time AND b.start_time < a.end_time
+JOIN sections s1 ON s1.id = a.section_id
+JOIN sections s2 ON s2.id = b.section_id
+WHERE s1.professor_id = s2.professor_id;
+
+CREATE TABLE enrollments (
+  id SERIAL PRIMARY KEY,
+  student_id INT NOT NULL REFERENCES users(id),
+  section_id INT NOT NULL REFERENCES sections(id) ON DELETE CASCADE,
+  date_enrolled TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT uq_enrollment UNIQUE (student_id, section_id)
 );

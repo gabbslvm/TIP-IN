@@ -71,6 +71,8 @@ const PAGES = {
         { id: "petitions", label: "Petitions", icon: "file", title: "Petitions", sub: "Request a new section and track your requests.", render: () => renderStudentPetitions() },
         { id: "demand", label: "Demand", icon: "chart", title: "Course Demand", sub: "Tell us which courses you want to take.", render: () => renderStudentDemand() },
         { id: "sections", label: "Sections", icon: "grid", title: "Sections", sub: "See which sections are available, near full, or full.", render: () => renderStudentSections() },
+        { id: "mysections", label: "My Sections", icon: "grid", title: "My Sections", sub: "The sections you added.", render: () => renderMySections() },
+        { id: "myschedule", label: "My Schedule", icon: "calendar", title: "My Schedule", sub: "Your weekly class schedule.", render: () => renderMySchedule() },
         { id: "announcements", label: "Announcements", icon: "megaphone", title: "Announcements", sub: "The latest news from the program.", render: () => renderAnnouncements() },
         { id: "settings", label: "Settings", icon: "gear", title: "Settings", sub: "Your account details.", render: () => renderSettings() },
     ],
@@ -85,6 +87,7 @@ const PAGES = {
         { id: "dashboard", label: "Dashboard", icon: "home", title: greeting, sub: "Enrollment overview.", render: () => renderCoordDashboard() },
         { id: "petitions", label: "Petition Management", icon: "file", title: "Petition Management", sub: "Review petitions submitted by students.", render: () => renderCoordPetitions() },
         { id: "sections", label: "Sections", icon: "grid", title: "Section Management", sub: "Create sections, assign professors and set schedules.", render: () => renderCoordSections() },
+        { id: "courses", label: "Courses", icon: "file", title: "Courses", sub: "Add and view courses.", render: () => renderCoordCourses() },
         { id: "recommendations", label: "Recommendations", icon: "star", title: "Section Recommendations", sub: "Review courses flagged for high demand.", render: () => renderRecommendations() },
         { id: "announcements", label: "Announcements", icon: "megaphone", title: "Announcements", sub: "The latest news from the program.", render: () => renderAnnouncements() },
         { id: "settings", label: "Settings", icon: "gear", title: "Settings", sub: "Your account details.", render: () => renderSettings() },
@@ -375,17 +378,29 @@ function renderAnnouncementList(list, emptyText) {
 
 async function renderAnnouncements() {
     const list = await api("/api/announcements");
-    return '<div class="panel"><div class="panelHead"><h3>Announcements</h3>' +
-        '<span class="muted">' + list.length + (list.length === 1 ? " item" : " items") + "</span></div>" +
-        renderAnnouncementList(list) + "</div>";
+    const form = currentUser.role === "COORDINATOR"
+        ? '<div class="panel"><div class="panelHead"><h3>Post Announcement</h3></div>' +
+            '<div class="field"><label for="annTitle">Title</label><input id="annTitle" placeholder="Announcement title"></div>' +
+            '<div class="field"><label for="annMsg">Message</label><textarea id="annMsg" rows="3" placeholder="Write the announcement..."></textarea></div>' +
+            '<button class="btn" data-act="annPost">Post</button></div>'
+        : "";
+    return form + '<div class="panel"><div class="panelHead"><h3>Announcements</h3>' +
+        '<span class="muted" id="annCount">' + list.length + (list.length === 1 ? " item" : " items") + "</span></div>" +
+        '<div id="annList">' + renderAnnouncementList(list) + "</div></div>";
 }
 
 async function renderSettings() {
     const u = currentUser;
     const rows = [["Name", u.name], ["Email", u.email || "Not available"], ["Role", userRoleLabel(u)]];
     return '<div class="panel"><div class="panelHead"><h3>Account</h3></div><dl class="details">' +
-        rows.map(function (r) { return "<div><dt>" + esc(r[0]) + "</dt><dd>" + esc(r[1]) + "</dd></div>"; }).join("") +
-        '</dl><button class="btn" data-act="logout">Log Out</button></div>';
+    rows.map(function (r) { return "<div><dt>" + esc(r[0]) + "</dt><dd>" + esc(r[1]) + "</dd></div>"; }).join("") +
+    '</dl><button class="btn" data-act="logout">Log Out</button></div>' +
+    '<div class="panel"><div class="panelHead"><h3>Change Password</h3></div>' +
+    '<div class="formGrid">' +
+    '<div class="field"><label for="curPass">Current Password</label><input id="curPass" type="password" autocomplete="current-password"></div>' +
+    '<div class="field"><label for="newPass">New Password</label><input id="newPass" type="password" autocomplete="new-password" placeholder="At least 8 characters"></div>' +
+    '<div class="field"><label for="confPass">Confirm New Password</label><input id="confPass" type="password" autocomplete="new-password"></div></div>' +
+    '<button class="btn" data-act="changePass">Update Password</button></div>';
 }
 
 // =====================================================
@@ -396,6 +411,46 @@ const ACTIONS = {
     go: function (el) { showPage(el.dataset.page); },
     retry: function () { showPage(currentPageId); },
     logout: function () { openLogoutModal(); },
+};
+
+ACTIONS.annPost = async function (button) {
+    const title = $("annTitle"), msg = $("annMsg");
+    if (!title.value.trim()) { markInvalid(title, "Enter a title."); return; }
+    if (!msg.value.trim()) { markInvalid(msg, "Enter a message."); return; }
+
+    setBusy(button, true, "Posting...");
+    try {
+        await api("/api/announcements", "POST", { title: title.value.trim(), message: msg.value.trim() });
+        toast("Announcement posted!", "success");
+        title.value = ""; msg.value = "";
+        const list = await api("/api/announcements");
+        $("annList").innerHTML = renderAnnouncementList(list);
+        $("annCount").textContent = list.length + (list.length === 1 ? " item" : " items");
+    } catch (error) {
+        toastError(error);
+    } finally {
+        setBusy(button, false);
+    }
+};
+
+ACTIONS.changePass = async function (button) {
+    const cur = $("curPass"), nw = $("newPass"), cf = $("confPass");
+    if (!cur.value) { markInvalid(cur, "Enter your current password."); return; }
+    if (nw.value.length < 8) { markInvalid(nw, "Use at least 8 characters."); return; }
+    if (nw.value !== cf.value) { markInvalid(cf, "Passwords do not match."); return; }
+
+    setBusy(button, true, "Updating...");
+    try {
+        await api("/api/auth/password", "POST", {
+            user_id: currentUser.id, current_password: cur.value, new_password: nw.value,
+        });
+        toast("Password updated!", "success");
+        cur.value = ""; nw.value = ""; cf.value = "";
+    } catch (error) {
+        toastError(error);
+    } finally {
+        setBusy(button, false);
+    }
 };
 
 function bindViewEvents() {
@@ -477,6 +532,8 @@ async function showPage(id) {
     document.title = title.replace(/!$/, "") + " | TIP-IN";
 
     closeSidebar();
+    closeNotifPanel();
+    refreshNotifs();
     const view = $("view");
     enter(view, statusPage("loading"));
     window.scrollTo(0, 0);
@@ -581,7 +638,85 @@ function updateBell(list) {
 }
 
 function onBellClick() {
-    showPage(currentUser && currentUser.role === "COORDINATOR" ? "recommendations" : "announcements");
+    if (!currentUser) return;
+    if (currentUser.role === "COORDINATOR") showPage("recommendations");
+    else toggleNotifPanel();
+}
+
+// ---- notifications for students and faculty (read state is kept in localStorage)
+let notifItems = [];
+
+function seenKey() { return "tipin.seen." + currentUser.id; }
+
+function loadSeen() {
+    try { return new Set(JSON.parse(localStorage.getItem(seenKey()) || "[]")); } catch (e) { return new Set(); }
+}
+
+function saveSeen(set) {
+    try { localStorage.setItem(seenKey(), JSON.stringify(Array.from(set))); } catch (e) { /* ignore */ }
+}
+
+async function loadNotifs() {
+    const tasks = [api("/api/announcements").catch(function () { return []; })];
+    if (currentUser.role === "STUDENT") tasks.push(api("/api/petitions?student_id=" + currentUser.id).catch(function () { return []; }));
+    if (currentUser.role === "FACULTY") tasks.push(api("/api/sections?professor_id=" + currentUser.id).catch(function () { return []; }));
+    const r = await Promise.all(tasks);
+
+    const items = [];
+    if (currentUser.role === "STUDENT") {
+        r[1].forEach(function (p) {
+            if (p.status === "PENDING") return;
+            items.push({ key: "pet-" + p.id + "-" + p.status, page: "petitions",
+                text: "Your petition for " + p.course_code + " (" + p.desired_section + ") is now " + STATUS_LABEL[p.status] + "." });
+        });
+    }
+    if (currentUser.role === "FACULTY") {
+        r[1].forEach(function (s) {
+            items.push({ key: "sec-" + s.id, page: "schedule",
+                text: "You are assigned to " + s.course_code + " " + String(s.section_code).trim() + "." });
+        });
+    }
+    r[0].forEach(function (a) {
+        items.push({ key: "ann-" + (a.id != null ? a.id : a.title), page: "announcements", text: "New announcement: " + a.title });
+    });
+    return items;
+}
+
+async function refreshNotifs() {
+    if (!currentUser || currentUser.role === "COORDINATOR") return;
+    try { notifItems = await loadNotifs(); } catch (e) { return; }
+    const seen = loadSeen();
+    const unread = notifItems.some(function (n) { return !seen.has(n.key); });
+    $("bellDot").classList.toggle("show", unread);
+    $("bell").setAttribute("aria-label", unread ? "Notifications: you have new updates" : "Notifications");
+}
+
+function closeNotifPanel() {
+    const panel = $("notifPanel");
+    if (panel) panel.remove();
+}
+
+function toggleNotifPanel() {
+    if ($("notifPanel")) { closeNotifPanel(); return; }
+    const seen = loadSeen();
+    const panel = document.createElement("div");
+    panel.id = "notifPanel";
+    panel.className = "notifPanel";
+    panel.innerHTML = '<div class="notifHead">Notifications</div>' + (notifItems.length
+        ? notifItems.slice(0, 15).map(function (n) {
+            return '<button class="notifItem' + (seen.has(n.key) ? "" : " unread") + '" data-page="' + n.page + '">' + esc(n.text) + "</button>";
+        }).join("")
+        : '<div class="notifEmpty">No notifications yet.</div>');
+    document.body.appendChild(panel);
+
+    notifItems.forEach(function (n) { seen.add(n.key); });
+    saveSeen(seen);
+    $("bellDot").classList.remove("show");
+
+    panel.addEventListener("click", function (e) {
+        const item = e.target.closest("[data-page]");
+        if (item) { closeNotifPanel(); showPage(item.dataset.page); }
+    });
 }
 
 // =====================================================
@@ -726,7 +861,9 @@ function logout(reason) {
     clearUser();
     selectedPortal = "";
     currentPageId = null;
-    navToken++;                                  // drop any request still in flight
+    navToken++;
+    closeNotifPanel();
+    notifItems = [];                                 // drop any request still in flight
     $("view").innerHTML = "";
     $("nav").innerHTML = "";
     $("bell").hidden = true;
@@ -791,6 +928,10 @@ function boot() {
     });
 
     // restore the session after a refresh
+    // click outside the notification list closes it
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest("#notifPanel") && !e.target.closest("#bell")) closeNotifPanel();
+    });
     if (currentUser) enterApp(currentUser); else showLogin();
 }
 

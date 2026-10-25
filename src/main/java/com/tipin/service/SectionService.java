@@ -21,32 +21,38 @@ public class SectionService {
             int professorId,
             int capacity,
             String sectionCode,
-            JSONArray slots
-    ) throws Exception {
+            JSONArray slots) throws Exception {
         return new SectionDAO().createSection(
-            courseId,
-            professorId,
-            capacity,
-            sectionCode,
-            slots
-        );
+                courseId,
+                professorId,
+                capacity,
+                sectionCode,
+                slots);
     }
 
     public static boolean updateSection(
             int sectionId,
             int professorId,
             int capacity,
-            JSONArray slots
-    ) throws Exception {
+            int enrollees,
+            JSONArray slots) throws Exception {
         return new SectionDAO().updateSection(
-            sectionId,
-            professorId,
-            capacity,
-            slots
-        );
+                sectionId,
+                professorId,
+                capacity,
+                enrollees,
+                slots);
     }
 
     public static JSONArray getScheduleConflicts() throws Exception {
         return new SectionDAO().findScheduleConflicts();
+    }
+
+    public static boolean deleteSection(int sectionId) throws Exception {
+        return new SectionDAO().deleteSection(sectionId);
+    }
+
+    public static List<Section> getByStudent(int studentId) throws Exception {
+        return new SectionDAO().findByStudent(studentId);
     }
 }

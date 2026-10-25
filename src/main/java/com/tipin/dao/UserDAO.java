@@ -55,4 +55,34 @@ public class UserDAO {
         }
         return list;
     }
+
+    public User findById(int id) throws SQLException {
+        String sql = "SELECT * FROM users WHERE id = ?";
+        try (Connection conn = DBConnection.get();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User();
+                    user.setId(rs.getInt("id"));
+                    user.setName(rs.getString("name"));
+                    user.setEmail(rs.getString("email"));
+                    user.setPassword(rs.getString("password_hash"));
+                    user.setRole(rs.getString("role"));
+                    return user;
+                }
+            }
+        }
+        return null;
+    }
+
+    public void updatePassword(int id, String hash) throws SQLException {
+        String sql = "UPDATE users SET password_hash = ? WHERE id = ?";
+        try (Connection conn = DBConnection.get();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, hash);
+            stmt.setInt(2, id);
+            stmt.executeUpdate();
+        }
+    }
 }

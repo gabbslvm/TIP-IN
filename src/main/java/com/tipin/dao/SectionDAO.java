@@ -35,6 +35,13 @@ public class SectionDAO {
                 professorId);
     }
 
+    public List<Section> findByStudent(int studentId) throws SQLException {
+        return query(
+                SELECT + "JOIN enrollments e ON e.section_id = s.id "
+                        + "WHERE e.student_id = ? ORDER BY c.code",
+                studentId);
+    }
+
     private List<Section> query(String sql, Integer professorId)
             throws SQLException {
 
@@ -160,16 +167,12 @@ public class SectionDAO {
 
                 conn.commit();
                 return sectionId;
-
             } catch (Exception e) {
                 conn.rollback();
-
                 if (e instanceof SQLException) {
                     throw (SQLException) e;
                 }
-
                 throw new SQLException("Failed to create section", e);
-
             } finally {
                 conn.setAutoCommit(true);
             }
@@ -180,78 +183,58 @@ public class SectionDAO {
             int sectionId,
             int professorId,
             int capacity,
+            int enrollees,
             JSONArray slots) throws SQLException {
 
-        String updateSection = "UPDATE sections SET professor_id = ?, capacity = ? WHERE id = ?";
+        if (enrollees < 0)
+            throw new SQLException("Enrolled students cannot be negative");
+        if (enrollees > capacity)
+            throw new SQLException("Enrolled students cannot exceed capacity");
 
+        String updateSection = "UPDATE sections SET professor_id = ?, capacity = ?, current_enrollees = ? WHERE id = ?";
         String deleteSlots = "DELETE FROM schedules WHERE section_id = ?";
-
         String insertSlot = "INSERT INTO schedules "
                 + "(section_id, day_of_week, start_time, end_time) "
                 + "VALUES (?, ?, ?::time, ?::time)";
 
         try (Connection conn = DBConnection.get()) {
             conn.setAutoCommit(false);
-
-            try (PreparedStatement chk = conn.prepareStatement(
-                    "SELECT current_enrollees FROM sections WHERE id = ?")) {
-                chk.setInt(1, sectionId);
-                try (ResultSet rs = chk.executeQuery()) {
-                    if (rs.next() && capacity < rs.getInt(1)) {
-                        throw new SQLException("Capacity cannot be lower than current enrollees");
-                    }
-                }
-            }
-
             try {
                 int updated;
-
                 try (PreparedStatement stmt = conn.prepareStatement(updateSection)) {
-
                     stmt.setInt(1, professorId);
                     stmt.setInt(2, capacity);
-                    stmt.setInt(3, sectionId);
+                    stmt.setInt(3, enrollees);
+                    stmt.setInt(4, sectionId);
                     updated = stmt.executeUpdate();
                 }
-
                 if (updated == 0) {
                     conn.rollback();
                     return false;
                 }
-
                 try (PreparedStatement stmt = conn.prepareStatement(deleteSlots)) {
-
                     stmt.setInt(1, sectionId);
                     stmt.executeUpdate();
                 }
-
                 try (PreparedStatement stmt = conn.prepareStatement(insertSlot)) {
-
                     for (int i = 0; i < slots.length(); i++) {
                         JSONObject slot = slots.getJSONObject(i);
-
                         stmt.setInt(1, sectionId);
                         stmt.setString(2, slot.getString("day_of_week"));
                         stmt.setString(3, slot.getString("start_time"));
                         stmt.setString(4, slot.getString("end_time"));
                         stmt.addBatch();
                     }
-
                     stmt.executeBatch();
                 }
-
                 conn.commit();
                 return true;
-
             } catch (Exception e) {
                 conn.rollback();
-
                 if (e instanceof SQLException) {
                     throw (SQLException) e;
                 }
-
                 throw new SQLException("Failed to update section", e);
-
             } finally {
                 conn.setAutoCommit(true);
             }
@@ -261,29 +244,22 @@ public class SectionDAO {
     public JSONArray findScheduleConflicts() throws SQLException {
         String sql = "SELECT * FROM schedule_conflicts";
         JSONArray conflicts = new JSONArray();
-
         try (Connection conn = DBConnection.get();
                 PreparedStatement stmt = conn.prepareStatement(sql);
                 ResultSet rs = stmt.executeQuery()) {
-
             ResultSetMetaData meta = rs.getMetaData();
             int columnCount = meta.getColumnCount();
-
             while (rs.next()) {
                 JSONObject conflict = new JSONObject();
-
                 for (int i = 1; i <= columnCount; i++) {
                     Object value = rs.getObject(i);
-
                     conflict.put(
                             meta.getColumnLabel(i),
                             value == null ? JSONObject.NULL : value);
                 }
-
                 conflicts.put(conflict);
             }
         }
-
         return conflicts;
     }
 
@@ -301,5 +277,25 @@ public class SectionDAO {
         s.setCapacity(rs.getInt("capacity"));
 
         return s;
+    }
+
+    public boolean deleteSection(int sectionId) throws SQLException {
+        try (Connection conn = DBConnection.get()) {
+            try (PreparedStatement chk = conn.prepareStatement(
+                    "SELECT current_enrollees FROM sections WHERE id = ?")) {
+                chk.setInt(1, sectionId);
+                try (ResultSet rs = chk.executeQuery()) {
+                    if (!rs.next())
+                        return false;
+                    if (rs.getInt(1) > 0) {
+                        throw new SQLException("Cannot delete a section that has enrollees");
+                    }
+                }
+            }
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM sections WHERE id = ?")) {
+                stmt.setInt(1, sectionId);
+                return stmt.executeUpdate() > 0;
+            }
+        }
     }
 }

@@ -20,6 +20,7 @@ public class Main {
         server.createContext("/api/announcements", new AnnouncementHandler());
         server.createContext("/api/conflicts", new SectionHandler());
         server.createContext("/api/professors", new ProfessorHandler());
+        server.createContext("/api/enrollments", new EnrollmentHandler());
 
         server.setExecutor(null);
         server.start();
