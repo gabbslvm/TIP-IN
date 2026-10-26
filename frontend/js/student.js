@@ -302,7 +302,7 @@ function interestCell(course) {
             ? '<button class="btn" style="' + small + '" data-act="interest" data-id="' + course.id + '">Indicate Interest</button>'
             : '<button class="btn" style="' + small + ';cursor:not-allowed" disabled title="Available once all sections are full">Indicate Interest</button>';
 
-    return '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px">' + action + note + "</div>";
+    return '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">' + action + note + "</div>";
 }
 
 function demandTable(query, animate) {
@@ -415,7 +415,7 @@ function shownSection(g) {
 
 function sectionPicker(g, shown) {
     return '<select data-change="pickSection" data-course="' + esc(g.code) + '" aria-label="Choose section" ' +
-        'style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px">' +
+        'style="width:110px;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px">' +
         courseOptions(g).map(function (x) {
             if (!x.section) return '<option disabled>' + esc(x.code) + " (not yet open)</option>";
             const full = sectionState(x.section) === "FULL";
