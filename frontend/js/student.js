@@ -280,22 +280,24 @@ async function renderStudentDemand() {
     studentState.interested = loadInterested();
 
     return '<div class="panel"><div class="panelHead"><h3>Course Demand</h3></div>' +
-        '<p class="muted" style="margin-bottom:12px">You can indicate interest in a course once its three sections ' +
-        "(IT21S1, IT21S2 and IT21S3) are all full. This helps the coordinator see which courses need a new section.</p>" +
+        '<p class="muted" style="margin-bottom:12px">Indicate interest in the courses you want to take. ' +
+        "This helps the coordinator see which courses need a new section.</p>" +
         '<div class="toolbar"><input id="demandSearch" type="search" placeholder="Search by code or title..." data-input="filterDemand"></div>' +
         '<div id="demandTable">' + demandTable("", true) + "</div></div>";
 }
 
 // Last column: interest recorded / button (all 3 full) / which sections are still open
 function interestCell(course) {
-    if (studentState.interested.has(course.id)) return '<span class="status ok">&#10003; Interested</span>';
-    if (allInitialFull(studentState.sections, course.code)) {
-        return '<button class="btn" data-act="interest" data-id="' + course.id + '">Indicate Interest</button>';
-    }
     const open = initialSections(studentState.sections, course.code).filter(function (x) {
         return x.section && sectionState(x.section) !== "FULL";
     }).map(function (x) { return x.code; });
-    return '<span class="muted">' + (open.length ? "Still open: " + esc(open.join(", ")) : "Sections not yet available") + "</span>";
+    const note = '<span class="muted">' + (open.length ? "Still open: " + esc(open.join(", ")) : "Sections not yet available") + "</span>";
+
+    const action = studentState.interested.has(course.id)
+        ? '<span class="status ok">&#10003; Interested</span>'
+        : '<button class="btn" style="padding:7px 14px;font-size:13px" data-act="interest" data-id="' + course.id + '">Indicate Interest</button>';
+
+    return '<div style="display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px">' + note + action + "</div>";
 }
 
 function demandTable(query, animate) {
@@ -308,7 +310,7 @@ function demandTable(query, animate) {
         { label: "Title", key: "title" },
         { label: "Units", key: "units" },
         { label: "Interested", render: function (c) { return String(studentState.demand[c.id] || 0); } },
-        { label: "", render: interestCell },
+        { label: "Action", render: interestCell },
     ], list, { empty: q ? "No courses match your search." : "No courses available yet.", animate: animate, rowAttrs: function (c) { return 'data-course="' + c.id + '"'; } });
 }
 
