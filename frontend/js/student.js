@@ -129,7 +129,7 @@ function sectionOptions(course) {
         return '<option value="' + x.code + '">' + x.code + " (" + note + ")</option>";
     }).join("");
 
-    if (allInitialFull(course.code)) {
+    if (allInitialFull(studentState.sections, course.code)) {
         html += studentState.interested.has(course.id)
             ? '<option value="' + INTEREST_OPTION + '" disabled>Indicate Interest (already recorded)</option>'
             : '<option value="' + INTEREST_OPTION + '">Indicate Interest</option>';
