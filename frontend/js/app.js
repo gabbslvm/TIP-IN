@@ -795,6 +795,8 @@ async function doRegister() {
     if (password.length < 8) { toast("Password must be at least 8 characters.", "error"); return; }
     if (password !== confirm) { toast("Passwords do not match.", "error"); return; }
 
+        const body = { name: name, email: email, password: password, role: portal.api };
+
     if (portal.api !== "student") {
         body.invite_code = $("regInvite").value.trim();
         if (!body.invite_code) { toast("Enter your invitation code.", "error"); return; }
