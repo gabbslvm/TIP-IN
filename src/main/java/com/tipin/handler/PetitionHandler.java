@@ -84,7 +84,17 @@ public class PetitionHandler implements HttpHandler {
                 PetitionService.updateStatus(id, status);
                 HandlerUtil.sendResponse(ex, 200, "{\"message\":\"Updated\"}");
 
-            } else {
+            } else if (method.equals("DELETE") && path.startsWith("/api/petitions/")) {
+    User caller = HandlerUtil.requireAuth(ex, "student");
+    if (caller == null) return;
+    int id = Integer.parseInt(HandlerUtil.lastSegment(ex));
+    if (!PetitionService.remove(id, caller.getId())) {
+        HandlerUtil.sendError(ex, 404, "Petition not found or already under review");
+        return;
+    }
+    HandlerUtil.sendResponse(ex, 200, "{\"message\":\"Petition removed\"}");
+
+} else {
                 HandlerUtil.sendError(ex, 404, "Not found");
             }
         } catch (Exception e) {
