@@ -25,4 +25,7 @@ public class PetitionService {
         if (new PetitionDAO().updateStatus(id, status) == 0)
             throw new Exception("Petition not found");
     }
+    public static boolean remove(int id, int studentId) throws Exception {
+    return new PetitionDAO().deletePending(id, studentId) > 0;
+}
 }
