@@ -75,4 +75,14 @@ public class PetitionDAO {
         p.setDateSubmitted(rs.getTimestamp("date_submitted"));
         return p;
     }
+
+    public int deletePending(int id, int studentId) throws SQLException {
+    String sql = "DELETE FROM petitions WHERE id = ? AND student_id = ? AND status = 'PENDING'";
+    try (Connection conn = DBConnection.get();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.setInt(2, studentId);
+            return stmt.executeUpdate();
+        }
+    }
 }
