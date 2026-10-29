@@ -375,7 +375,7 @@ async function renderStudentSections() {
     studentState.picked = {};   // section_id -> true if the student clicked "Add" (to show a flash effect)
     return '<div class="panel"><div class="panelHead"><h3>Sections</h3><span class="muted">' + studentState.sections.length + " total</span></div>" +
         '<div class="toolbar"><input id="sectionSearch" type="search" placeholder="Search course, section, professor or schedule..." data-input="filterSections">' +
-        '<div class="chips" id="sectionChips">' + sectionChips() + "</div></div>" +
+        '<div class="chips" id="">' + () + "</div></div>" +
         '<div id="sectionTable">' + sectionsTable("", true) + "</div></div>";
 }
 
@@ -447,9 +447,9 @@ function sectionPicker(g, shown) {
 
 function sectionChips() {
     const counts = { ALL: 0, AVAILABLE: 0, NEAR: 0, FULL: 0 };
-    courseGroups().forEach(function (g) {
-        const s = shownSection(g);
-        if (s) { counts.ALL++; counts[sectionState(s)]++; }
+    studentState.sections.forEach(function (s) {
+        counts.ALL++;
+        counts[sectionState(s)]++;
     });
     return [["ALL", "All"], ["AVAILABLE", "Available"], ["NEAR", "Near Full"], ["FULL", "Full"]].map(function (f) {
         return '<button class="chip' + (studentState.sectionFilter === f[0] ? " active" : "") + '" data-act="sectionFilter" data-value="' + f[0] + '">' +
@@ -459,22 +459,23 @@ function sectionChips() {
 
 function sectionsTable(query, animate) {
     const q = String(query || "").toLowerCase();
-    const rows = courseGroups().map(function (g) { return { g: g, s: shownSection(g) }; }).filter(function (r) {
-        if (!r.s) return false;
-        const text = (r.g.code + " " + r.g.title + " " + sectionLabel(r.s) + " " + r.s.professor_name + " " + r.s.schedule).toLowerCase();
+    const rows = studentState.sections.slice().sort(function (a, b) {
+        return String(a.course_code).localeCompare(String(b.course_code)) || secNum(a) - secNum(b);
+    }).filter(function (s) {
+        const text = (s.course_code + " " + s.course_title + " " + sectionLabel(s) + " " + s.professor_name + " " + s.schedule).toLowerCase();
         return text.indexOf(q) !== -1 &&
-            (studentState.sectionFilter === "ALL" || sectionState(r.s) === studentState.sectionFilter);
+            (studentState.sectionFilter === "ALL" || sectionState(s) === studentState.sectionFilter);
     });
     return renderTable([
-        { label: "Course", render: function (r) { return esc(r.g.code) + " - " + esc(r.g.title); } },
-        { label: "Section", render: function (r) { return sectionPicker(r.g, r.s); } },
-        { label: "Professor", render: function (r) { return esc(r.s.professor_name); } },
-        { label: "Schedule", render: function (r) { return scheduleText(r.s); } },
-        { label: "Enrolled", render: function (r) {
-            return esc(r.s.current_enrollees) + " / " + esc(r.s.capacity) + meter(r.s.current_enrollees, r.s.capacity, STATUS_CLASS[sectionState(r.s)]);
+        { label: "Course", render: function (s) { return esc(s.course_code) + " - " + esc(s.course_title); } },
+        { label: "Section", render: function (s) { return esc(sectionLabel(s)); } },
+        { label: "Professor", render: function (s) { return esc(s.professor_name); } },
+        { label: "Schedule", render: function (s) { return scheduleText(s); } },
+        { label: "Enrolled", render: function (s) {
+            return esc(s.current_enrollees) + " / " + esc(s.capacity) + meter(s.current_enrollees, s.capacity, STATUS_CLASS[sectionState(s)]);
         } },
-        { label: "Status", render: function (r) { return badge(sectionState(r.s)); } },
-        { label: "", render: function (r) { return sectionAction(r.s); } },
+        { label: "Status", render: function (s) { return badge(sectionState(s)); } },
+        { label: "", render: function (s) { return sectionAction(s); } },
     ], rows, { empty: "No sections match.", animate: animate });
 }
 
