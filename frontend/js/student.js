@@ -372,10 +372,10 @@ async function renderStudentSections() {
     studentState.sections = r[0];
     studentState.mine = r[1];
     studentState.sectionFilter = "ALL";
-    studentState.picked = {};   // section_id -> true if the student clicked "Add" (to show a flash effect)
+    studentState.picked = {};
     return '<div class="panel"><div class="panelHead"><h3>Sections</h3><span class="muted">' + studentState.sections.length + " total</span></div>" +
         '<div class="toolbar"><input id="sectionSearch" type="search" placeholder="Search course, section, professor or schedule..." data-input="filterSections">' +
-        '<div class="chips" id="">' + () + "</div></div>" +
+        '<div class="chips" id="sectionChips">' + sectionChips() + "</div></div>" +
         '<div id="sectionTable">' + sectionsTable("", true) + "</div></div>";
 }
 
@@ -402,47 +402,6 @@ function scheduleText(s) {
     return slots.map(function (sl) {
         return esc(sl.day_of_week.slice(0, 3)) + " " + esc(fmtTime(sl.start_time)) + " - " + esc(fmtTime(sl.end_time));
     }).join("<br>");
-}
-
-// One entry per course: {code, title, list: its sections}
-function courseGroups() {
-    const map = {};
-    studentState.sections.forEach(function (s) {
-        const g = map[s.course_code] || (map[s.course_code] = { code: s.course_code, title: s.course_title, list: [] });
-        g.list.push(s);
-    });
-    return Object.keys(map).sort().map(function (k) {
-        map[k].list.sort(function (a, b) { return secNum(a) - secNum(b); });
-        return map[k];
-    });
-}
-
-// Dropdown entries: IT21S1-3 always, plus any extra (S4, S5...) that exist
-function courseOptions(g) {
-    const extra = g.list.filter(function (s) {
-        return INITIAL_SECTIONS.indexOf(String(s.section_code).trim()) === -1;
-    }).map(function (s) { return { code: String(s.section_code).trim(), section: s }; });
-    return initialSections(studentState.sections, g.code).concat(extra);
-}
-
-// The section currently displayed for a course
-function shownSection(g) {
-    const open = courseOptions(g).filter(function (x) { return x.section; }).map(function (x) { return x.section; });
-    return open.find(function (s) { return s.id === studentState.picked[g.code]; })
-        || open.find(function (s) { return studentState.mine.some(function (m) { return m.id === s.id; }); })
-        || open.find(function (s) { return sectionState(s) !== "FULL"; })
-        || open[0] || null;
-}
-
-function sectionPicker(g, shown) {
-    return '<select data-change="pickSection" data-course="' + esc(g.code) + '" aria-label="Choose section" ' +
-        'style="width:110px;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px">' +
-        courseOptions(g).map(function (x) {
-            if (!x.section) return '<option disabled>' + esc(x.code) + " (not yet open)</option>";
-            const full = sectionState(x.section) === "FULL";
-            return '<option value="' + x.section.id + '"' + (x.section.id === shown.id ? " selected" : "") +
-                (full ? " disabled" : "") + ">" + esc(x.code) + (full ? " (Full)" : "") + "</option>";
-        }).join("") + "</select>";
 }
 
 function sectionChips() {
@@ -485,12 +444,6 @@ ACTIONS.filterSections = function (input) {
 
 ACTIONS.sectionFilter = function (chip) {
     studentState.sectionFilter = chip.dataset.value;
-    $("sectionChips").innerHTML = sectionChips();
-    $("sectionTable").innerHTML = sectionsTable($("sectionSearch").value, false);
-};
-
-ACTIONS.pickSection = function (select) {
-    studentState.picked[select.dataset.course] = Number(select.value);
     $("sectionChips").innerHTML = sectionChips();
     $("sectionTable").innerHTML = sectionsTable($("sectionSearch").value, false);
 };
