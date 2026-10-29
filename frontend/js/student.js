@@ -209,6 +209,22 @@ ACTIONS.myPetChip = function (chip) {
     $("myPetitions").innerHTML = myPetitionsTable(false);
 };
 
+ACTIONS.petRemove = async function (button) {
+    if (!confirm("Remove this petition?")) return;
+    setBusy(button, true, "Removing...");
+    try {
+        await api("/api/petitions/" + button.dataset.id, "DELETE");
+        toast("Petition removed.", "success");
+        studentState.petitions = await api("/api/petitions?student_id=" + currentUser.id);
+        $("petChips").innerHTML = petitionChips();
+        $("myPetitions").innerHTML = myPetitionsTable(false);
+        $("petSummary").textContent = petitionSummary();
+    } catch (error) {
+        toastError(error);
+        setBusy(button, false);
+    }
+};
+
 ACTIONS.submitPetition = async function (button) {
     const course = chosenCourse();
     const courseSelect = $("petCourse");
