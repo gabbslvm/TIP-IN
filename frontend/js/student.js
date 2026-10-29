@@ -113,7 +113,7 @@ async function renderStudentPetitions() {
         '<button class="btn" id="petSubmit" data-act="submitPetition">Submit Petition</button></div>' +
         '<div class="panel"><div class="panelHead"><h3>My Petitions</h3><span class="muted" id="petSummary">' + petitionSummary() + "</span></div>" +
         '<div class="toolbar"><div class="chips" id="petChips">' + petitionChips() + "</div></div>" +
-        '<div id="myPetitions">' + myPetitionsTable(true) + "</div></div>";
+        '<div id="myPetitions">' + (true) + "</div></div>";
 }
 
 // IT21S1..IT21S3 for the chosen course; "Indicate Interest" only when all three are full
@@ -182,7 +182,7 @@ function petitionChips() {
     }).join("");
 }
 
-function myPetitionsTable(animate) {
+function (animate) {
     const f = studentState.petitionFilter;
     const list = studentState.petitions.filter(function (p) {
         return f === "ALL" || (f === "PENDING" ? isPendingStatus(p.status) : p.status === f);
@@ -195,6 +195,11 @@ function myPetitionsTable(animate) {
         { label: "Reason", key: "reason" },
         { label: "Date", render: function (p) { return esc(formatDate(p.date_submitted)); } },
         { label: "Status", render: function (p) { return badge(p.status); } },
+        { label: "", render: function (p) {
+    return p.status === "PENDING"
+        ? '<button class="btn ghost" data-act="petRemove" data-id="' + p.id + '">Remove</button>'
+        : "";
+} },
     ], list, { empty: empty, animate: animate });
 }
 
